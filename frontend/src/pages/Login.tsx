@@ -28,8 +28,8 @@ export const LoginPage: React.FC = () => {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@dreamtelecom.com',
-      password: 'Admin123!',
+      email: '',
+      password: '',
     },
   });
 

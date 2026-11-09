@@ -9,6 +9,15 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
+  // Security: Disable X-Powered-By header
+  const httpAdapter = app.getHttpAdapter();
+  if (httpAdapter && typeof httpAdapter.getInstance === 'function') {
+    const instance = httpAdapter.getInstance();
+    if (instance && typeof instance.disable === 'function') {
+      instance.disable('x-powered-by');
+    }
+  }
+
   // Global Prefix
   app.setGlobalPrefix('api/v1');
 
