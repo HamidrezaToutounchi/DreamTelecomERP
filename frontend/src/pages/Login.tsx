@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { Lock, Mail, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuthControllerLogin } from '@/api/generated';
 import { useAuth, User } from '@/context/AuthContext';
 import { DreamLogo, DreamBarsIllustration } from '@/components/common/DreamLogo';
@@ -24,13 +24,12 @@ export const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'manager@dreamtelecom.com',
-      password: 'Dream123!',
+      email: 'admin@dreamtelecom.com',
+      password: 'Admin123!',
     },
   });
 
@@ -48,11 +47,6 @@ export const LoginPage: React.FC = () => {
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Giriş yapılamadı. Bilgilerinizi kontrol ediniz.');
     }
-  };
-
-  const quickFill = (email: string) => {
-    setValue('email', email);
-    setValue('password', 'Dream123!');
   };
 
   return (
@@ -126,29 +120,12 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Hızlı Demo Giriş Butonları */}
-        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-            Hızlı Test Rolleri
+        {/* Güvenli Giriş Bilgilendirmesi */}
+        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>256-bit SSL ve JWT ile korumalı kurumsal erişim</span>
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => quickFill('manager@dreamtelecom.com')}
-              className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:border-navy-600 transition-colors cursor-pointer"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-navy-600 dark:text-navy-400" />
-              Satış Müdürü
-            </button>
-            <button
-              type="button"
-              onClick={() => quickFill('can@dreamtelecom.com')}
-              className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:border-teal-600 transition-colors cursor-pointer"
-            >
-              <UserCheck className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-              Satış Temsilcisi
-            </button>
-          </div>
         </div>
       </div>
     </div>

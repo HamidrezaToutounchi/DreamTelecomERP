@@ -60,15 +60,16 @@ docker compose ps
 ---
 
 ### 4. Başlangıç Verilerini Yükleyin (Seed)
-İlk yönetici (Kemal Özdemir), satış temsilcisi (Can Yıldız), kategoriler ve ürün kataloğunu oluşturmak için:
+Veritabanı tabloları `Prisma` tarafından otomatik oluşturulur. Tüm verileri sıfırlayıp yalnızca **1 adet Sistem Yöneticisi (Admin)** hesabı tanımlamak için:
 
 ```bash
 docker compose exec dt-backend npx ts-node prisma/seed.ts
 ```
 
 > **Giriş Bilgileri:**
-> - **Satış Müdürü:** `manager@dreamtelecom.com` | Şifre: `Manager123!`
-> - **Satış Temsilcisi:** `rep@dreamtelecom.com` | Şifre: `Rep123!`
+> - **Sistem Yöneticisi (Admin):** `admin@dreamtelecom.com` | Şifre: `Admin123!`
+> - **Rol:** `SALES_MANAGER` (Tüm yetkilere sahip Sistem Yöneticisi)
+> *(Veritabanında başka hiçbir demo veri veya kullanıcı bırakılmaz, sistem sıfır olarak açılır.)*
 
 ---
 
