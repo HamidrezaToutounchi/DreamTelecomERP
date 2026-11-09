@@ -16,8 +16,6 @@ import {
   Laptop,
   Menu,
   X,
-  UserCheck,
-  ShieldAlert,
   Activity,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -55,23 +53,6 @@ export const AppLayout: React.FC = () => {
       <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200/80 dark:border-slate-800 bg-card shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-slate-200/80 dark:border-slate-800">
           <DreamLogo size="md" />
-        </div>
-
-        {/* Rol Rozeti */}
-        <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold tracking-wide uppercase',
-                isManager
-                  ? 'bg-navy-100 text-navy-800 dark:bg-navy-950 dark:text-navy-300 border border-navy-200 dark:border-navy-800'
-                  : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
-              )}
-            >
-              {isManager ? <ShieldAlert className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
-              {isManager ? 'Satış Müdürü' : 'Satış Temsilcisi'}
-            </span>
-          </div>
         </div>
 
         {/* Menü Linkleri */}
