@@ -9,7 +9,7 @@ export const initSocket = (userId: string, queryClient: QueryClient) => {
     socket.disconnect();
   }
 
-  const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+  const socketUrl = import.meta.env.VITE_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   socket = io(socketUrl, {
     query: { userId },

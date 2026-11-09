@@ -280,7 +280,7 @@ export const LeadsPage: React.FC = () => {
     try {
       setIsDownloadingTemplate(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/v1/leads/excel-template', {
+      const response = await axios.get('/api/v1/leads/excel-template', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

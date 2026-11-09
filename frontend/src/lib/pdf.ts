@@ -9,7 +9,7 @@ export async function downloadQuotePdf(quoteId: string, quoteNumber: string) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`http://localhost:3000/api/v1/quotes/${quoteId}/pdf`, {
+    const response = await axios.get(`/api/v1/quotes/${quoteId}/pdf`, {
       responseType: 'blob',
       headers: {
         Authorization: token ? `Bearer ${token}` : undefined,

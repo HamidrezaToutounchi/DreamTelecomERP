@@ -72,7 +72,7 @@ export const ProductsPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/api/v1/uploads/product-image', formData, {
+      const res = await axios.post('/api/v1/uploads/product-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
@@ -362,7 +362,7 @@ export const ProductsPage: React.FC = () => {
                         <div className="flex items-center gap-3">
                           {p.imageUrl ? (
                             <img
-                              src={`http://localhost:3000${p.imageUrl}`}
+                              src={p.imageUrl}
                               alt={p.name}
                               className="w-9 h-9 rounded object-cover border border-slate-200 shrink-0"
                             />
@@ -588,7 +588,7 @@ export const ProductsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   {imageUrl ? (
                     <div className="relative group w-14 h-14 rounded border border-slate-200 overflow-hidden">
-                      <img src={`http://localhost:3000${imageUrl}`} alt="Ürün" className="w-full h-full object-cover" />
+                      <img src={imageUrl} alt="Ürün" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => setImageUrl(undefined)}
