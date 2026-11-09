@@ -35,6 +35,7 @@ services:
       RUN_SEED: ${RUN_SEED:-false}
     volumes:
       - dt_uploads:/app/uploads
+      - ./backend/prisma:/app/prisma
     networks:
       - dt-network
 
