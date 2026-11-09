@@ -62,6 +62,7 @@ export const QuotesPage: React.FC = () => {
 
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [reviseModalQuote, setReviseModalQuote] = useState<any | null>(null);
   const [rejectModalQuote, setRejectModalQuote] = useState<any | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [convertToSaleQuote, setConvertToSaleQuote] = useState<any | null>(null);
@@ -166,6 +167,19 @@ export const QuotesPage: React.FC = () => {
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
+
+              {/* Revize Et Butonu (Yalnızca siparişe dönüştürülmemiş ve henüz revize edilmemiş tekliflerde) */}
+              {!(q.sales && q.sales.length > 0) && q.status !== 'REVISED' && (
+                <button
+                  type="button"
+                  onClick={() => setReviseModalQuote(q)}
+                  title="Teklifi Revize Et (Yeni Versiyon Oluştur)"
+                  className="p-1.5 rounded bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-semibold hidden xl:inline">Revize Et</span>
+                </button>
+              )}
 
               {/* Onaylandıysa -> Satışa Dönüştür (Yalnızca 1 Kez Dönüştürülebilir) */}
               {q.status === 'APPROVED' && (
@@ -355,6 +369,20 @@ export const QuotesPage: React.FC = () => {
         onClose={() => setCreateModalOpen(false)}
         mode="create"
       />
+
+      {/* ================= MODAL: TEKLİFİ REVİZE ET ================= */}
+      {reviseModalQuote && (
+        <QuoteFormModal
+          isOpen={!!reviseModalQuote}
+          onClose={() => setReviseModalQuote(null)}
+          mode="revise"
+          initialQuote={reviseModalQuote}
+          onSuccess={() => {
+            setReviseModalQuote(null);
+            queryClient.invalidateQueries({ queryKey: ['/api/v1/quotes'] });
+          }}
+        />
+      )}
 
       {/* ================= MODAL: RET SEBEBİ GİRİŞİ ================= */}
       {rejectModalQuote && (
