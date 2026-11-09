@@ -1,6 +1,7 @@
 import { PrismaClient, Role } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import * as bcryptModule from 'bcryptjs';
 
+const bcrypt: any = (bcryptModule as any).default || bcryptModule;
 const prisma = new PrismaClient();
 
 async function main() {
