@@ -253,12 +253,6 @@ export class PdfService {
                   margin: [0, 4, 0, 0],
                 },
                 {
-                  text: `Revizyon: v${quote.version || 1}`,
-                  fontSize: 8.5,
-                  color: '#64748B',
-                  alignment: 'right',
-                },
-                {
                   text: `Tarih: ${this.formatDate(quote.createdAt)}`,
                   fontSize: 8.5,
                   color: '#64748B',
