@@ -30,6 +30,7 @@ import {
   useQuotesControllerRevise,
   useCustomersControllerFindAll,
   useSalesControllerCreate,
+  useCompaniesControllerFindAll,
 } from '@/api/generated';
 import { useAuth } from '@/context/AuthContext';
 import { DataTable } from '@/components/common/DataTable';
@@ -59,6 +60,10 @@ export const QuotesPage: React.FC = () => {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [companyFilter, setCompanyFilter] = useState<string>('');
+
+  const { data: companiesData } = useCompaniesControllerFindAll();
+  const companies = (companiesData as any) || [];
 
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -73,6 +78,7 @@ export const QuotesPage: React.FC = () => {
     pageSize: pagination.pageSize,
     search: search || undefined,
     status: statusFilter || undefined,
+    companyId: companyFilter || undefined,
     sortBy: sorting[0]?.id || 'createdAt',
     sortOrder: sorting[0]?.desc ? 'desc' : 'asc',
   });
@@ -93,14 +99,33 @@ export const QuotesPage: React.FC = () => {
       {
         accessorKey: 'quoteNumber',
         header: 'Teklif No & Revizyon',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <CopyableCode code={row.original.quoteNumber} label="Teklif No" />
-            <span className="text-[11px] font-semibold text-muted-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-              v{row.original.version}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const isTescom =
+            row.original.company?.code === 'TESCOM' ||
+            row.original.quoteNumber?.startsWith('TS-');
+          return (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <CopyableCode code={row.original.quoteNumber} label="Teklif No" />
+                <span className="text-[11px] font-semibold text-muted-foreground bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                  v{row.original.version}
+                </span>
+              </div>
+              <div>
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1 text-[10px] font-extrabold px-1.5 py-0.5 rounded border',
+                    isTescom
+                      ? 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800'
+                      : 'bg-navy-50 text-navy-800 border-navy-200 dark:bg-navy-950/40 dark:text-navy-300 dark:border-navy-800',
+                  )}
+                >
+                  {isTescom ? 'Tescom Telecom' : 'Dream Telecom'}
+                </span>
+              </div>
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'customer.companyName',
@@ -291,6 +316,7 @@ export const QuotesPage: React.FC = () => {
           customerId: convertToSaleQuote.customerId,
           soldItemsSummary: summaryText || 'Satış işlemi',
           totalAmount: convertToSaleQuote.grandTotal,
+          currency: convertToSaleQuote.currency || 'TRY',
           isInvoiced: saleIsInvoiced,
           invoiceNumber: saleInvoiceNumber || undefined,
         },
@@ -341,6 +367,19 @@ export const QuotesPage: React.FC = () => {
             className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-navy-600"
           />
         </div>
+
+        <select
+          value={companyFilter}
+          onChange={(e) => setCompanyFilter(e.target.value)}
+          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-foreground cursor-pointer"
+        >
+          <option value="">🏢 Tüm Firmalar (Dream & Tescom)</option>
+          {companies.map((c: any) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
 
         <select
           value={statusFilter}

@@ -10,6 +10,7 @@ import type { CreateUserDtoRole } from './createUserDtoRole';
 export interface CreateUserDto {
   email: string;
   fullName: string;
+  phone?: string;
   password: string;
   role: CreateUserDtoRole;
 }

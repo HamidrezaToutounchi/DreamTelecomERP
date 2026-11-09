@@ -9,6 +9,8 @@ import type { CreateQuoteDtoCurrency } from './createQuoteDtoCurrency';
 import type { CreateQuoteItemDto } from './createQuoteItemDto';
 
 export interface CreateQuoteDto {
+  /** Teklif Veren Şirket ID (Dream veya Tescom) */
+  companyId?: string;
   /** Müşteri ID */
   customerId: string;
   /** Teklif geçerlilik tarihi */

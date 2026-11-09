@@ -6,6 +6,7 @@ export interface User {
   id: string;
   email: string;
   fullName: string;
+  phone?: string | null;
   role: 'SALES_MANAGER' | 'SALES_REP';
   isActive: boolean;
   createdAt: string;
@@ -19,6 +20,7 @@ interface AuthContextType {
   isRep: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (updatedUser: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,6 +58,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.location.href = '/login';
   };
 
+  const updateUser = (updatedUser: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const merged = { ...prev, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   const isManager = user?.role === 'SALES_MANAGER';
   const isRep = user?.role === 'SALES_REP';
 
@@ -69,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isRep,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

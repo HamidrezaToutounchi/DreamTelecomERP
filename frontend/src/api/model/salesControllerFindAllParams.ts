@@ -53,4 +53,8 @@ isInvoiced?: boolean;
  * Ödeme durumu
  */
 paymentStatus?: SalesControllerFindAllPaymentStatus;
+/**
+ * Şirket ID filtresi (Dream veya Tescom)
+ */
+companyId?: string;
 };

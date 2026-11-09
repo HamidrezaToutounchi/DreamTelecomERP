@@ -17,6 +17,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     UploadsModule,
     CategoriesModule,
     ProductsModule,
+    CompaniesModule,
   ],
 })
 export class AppModule {}

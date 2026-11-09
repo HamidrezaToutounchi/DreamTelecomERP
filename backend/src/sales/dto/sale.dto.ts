@@ -94,6 +94,11 @@ export class UpdateSaleDto {
   @IsOptional()
   paidAmount?: string;
 
+  @ApiPropertyOptional({ enum: Currency, example: Currency.TRY })
+  @IsEnum(Currency)
+  @IsOptional()
+  currency?: Currency;
+
   @ApiPropertyOptional({ default: true })
   @IsBoolean()
   @IsOptional()
@@ -129,6 +134,11 @@ export class SaleQueryDto extends PaginationQueryDto {
   @IsEnum(PaymentStatus)
   @IsOptional()
   paymentStatus?: PaymentStatus;
+
+  @ApiPropertyOptional({ description: 'Şirket ID filtresi (Dream veya Tescom)' })
+  @IsOptional()
+  @IsUUID()
+  companyId?: string;
 }
 
 export class SaleDto {

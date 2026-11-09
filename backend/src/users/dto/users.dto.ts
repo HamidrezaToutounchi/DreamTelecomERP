@@ -13,6 +13,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   fullName: string;
 
+  @ApiPropertyOptional({ example: '0555 123 45 67' })
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
   @ApiProperty({ example: 'Dream123!' })
   @IsString()
   @MinLength(6)
@@ -25,10 +30,20 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
+  @ApiPropertyOptional({ example: 'ahmet@dreamtelecom.com' })
+  @IsEmail({}, { message: 'Geçerli bir e-posta adresi giriniz.' })
+  @IsOptional()
+  email?: string;
+
   @ApiPropertyOptional({ example: 'Ahmet Yılmaz' })
   @IsString()
   @IsOptional()
   fullName?: string;
+
+  @ApiPropertyOptional({ example: '0555 123 45 67' })
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @ApiPropertyOptional({ example: 'NewSecret123!' })
   @IsString()
@@ -55,6 +70,9 @@ export class UserDto {
 
   @ApiProperty()
   fullName: string;
+
+  @ApiPropertyOptional()
+  phone?: string;
 
   @ApiProperty({ enum: Role })
   role: Role;

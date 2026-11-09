@@ -45,6 +45,8 @@ export const SalesPage: React.FC = () => {
   const [isInvoiced, setIsInvoiced] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'PARTIAL' | 'PAID'>('PENDING');
   const [paidAmount, setPaidAmount] = useState('');
+  const [currency, setCurrency] = useState<'TRY' | 'USD'>('TRY');
+  const [totalAmount, setTotalAmount] = useState('');
 
   const { data: salesResponse, isLoading } = useSalesControllerFindAll({
     page: pagination.pageIndex + 1,
@@ -61,14 +63,14 @@ export const SalesPage: React.FC = () => {
   const remainingCalculated = useMemo(() => {
     if (!editSaleModal) return '0.00';
     try {
-      const total = new Decimal(editSaleModal.totalAmount || 0);
+      const total = new Decimal(totalAmount || editSaleModal.totalAmount || 0);
       const paid = new Decimal(paidAmount || 0);
       const remaining = total.minus(paid);
       return remaining.isNegative() ? '0.00' : remaining.toFixed(2);
     } catch {
       return '0.00';
     }
-  }, [editSaleModal, paidAmount]);
+  }, [editSaleModal, totalAmount, paidAmount]);
 
   const columns = useMemo<ColumnDef<any>[]>(
     () => [
@@ -177,6 +179,8 @@ export const SalesPage: React.FC = () => {
               setInvoiceNumber(row.original.invoiceNumber || '');
               setPaymentStatus(row.original.paymentStatus || 'PENDING');
               setPaidAmount(row.original.paidAmount || '');
+              setCurrency(row.original.currency || 'TRY');
+              setTotalAmount(row.original.totalAmount || '');
             }}
             className="px-2.5 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-navy-50 text-navy-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-navy-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer flex items-center gap-1"
           >
@@ -209,9 +213,10 @@ export const SalesPage: React.FC = () => {
     if (!editSaleModal) return;
 
     try {
+      const activeTotal = totalAmount || editSaleModal.totalAmount;
       let finalPaidAmount = '0.00';
       if (paymentStatus === 'PAID') {
-        finalPaidAmount = editSaleModal.totalAmount;
+        finalPaidAmount = activeTotal;
       } else if (paymentStatus === 'PARTIAL') {
         finalPaidAmount = paidAmount || '0.00';
       }
@@ -219,6 +224,8 @@ export const SalesPage: React.FC = () => {
       await updateSaleMutation.mutateAsync({
         id: editSaleModal.id,
         data: {
+          currency: currency as any,
+          totalAmount: activeTotal,
           isInvoiced,
           invoiceNumber: isInvoiced ? invoiceNumber : undefined,
           paymentStatus,
@@ -297,6 +304,33 @@ export const SalesPage: React.FC = () => {
             </p>
 
             <form onSubmit={handleSaveInvoiceStatus} className="space-y-4">
+              {/* Para Birimi ve Satış Tutarı */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Fatura Para Birimi</label>
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value as any)}
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold"
+                  >
+                    <option value="TRY">₺ Türk Lirası (TRY)</option>
+                    <option value="USD">$ Amerikan Doları (USD)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">Fatura / Satış Tutarı</label>
+                  <input
+                    type="text"
+                    required
+                    value={totalAmount}
+                    onChange={(e) => setTotalAmount(e.target.value)}
+                    placeholder="Örn: 1200.00"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold"
+                  />
+                </div>
+              </div>
+
               {/* Fatura Durumu */}
               <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl space-y-2 border border-slate-200/70 dark:border-slate-800">
                 <label className="flex items-center gap-2 cursor-pointer">

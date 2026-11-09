@@ -32,7 +32,7 @@ export class LeadsService {
 
   private checkRepAccess(lead: { createdById: string; assignedToId?: string | null }, user: AuthenticatedUser) {
     if (user.role === Role.SALES_REP) {
-      if (lead.createdById !== user.id && lead.assignedToId !== user.id) {
+      if (lead.assignedToId ? lead.assignedToId !== user.id : lead.createdById !== user.id) {
         throw new ForbiddenException('Bu lead kaydına erişim yetkiniz bulunmamaktadır.');
       }
     }
@@ -113,7 +113,7 @@ export class LeadsService {
 
     // Row-level security for SALES_REP
     if (user.role === Role.SALES_REP) {
-      where.OR = [{ createdById: user.id }, { assignedToId: user.id }];
+      where.assignedToId = user.id;
     } else if (query.repId) {
       where.assignedToId = query.repId;
     }

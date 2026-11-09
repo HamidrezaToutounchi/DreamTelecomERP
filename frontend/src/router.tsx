@@ -20,6 +20,7 @@ import { AnalyticsPage } from '@/pages/Analytics';
 import { UsersPage } from '@/pages/Users';
 import { CategoriesPage } from '@/pages/Categories';
 import { AuditLogsPage } from '@/pages/AuditLogs';
+import { CompaniesPage } from '@/pages/Companies';
 
 // 1. Root Route
 const rootRoute = createRootRoute();
@@ -169,6 +170,13 @@ const auditLogsRoute = createRoute({
   },
 });
 
+// 15. Companies (Şirket Profilleri & Antetler)
+const companiesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/companies',
+  component: CompaniesPage,
+});
+
 // Route Tree
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -186,6 +194,7 @@ const routeTree = rootRoute.addChildren([
     usersRoute,
     categoriesRoute,
     auditLogsRoute,
+    companiesRoute,
   ]),
 ]);
 

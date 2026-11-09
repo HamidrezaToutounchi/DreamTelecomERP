@@ -50,7 +50,10 @@ export class PdfService {
   }
 
   async generateQuotePdf(quote: any): Promise<Buffer> {
-    const corporateBlue = '#004A93';
+    const company = quote.company || {};
+    const isTescom = company.code === 'TESCOM' || (quote.quoteNumber && quote.quoteNumber.startsWith('TS-'));
+
+    const corporateBlue = isTescom ? '#0062A5' : (company.primaryColor || '#004A93');
     const darkGray = '#1E293B';
     const lightGray = '#F8FAFC';
     const borderGray = '#CBD5E1';
@@ -59,24 +62,38 @@ export class PdfService {
     const rep = quote.rep || {};
     const items = quote.items || [];
 
-    // Gerçek Dream Telecom Logo Base64
+    // Şirket Kurumsal Bilgileri (Veritabanından dinamik gelir)
+    const companyName = company.name || (isTescom ? 'Tescom Telecom' : 'Dream Telecom');
+    const companyTitle = company.title || (isTescom
+      ? 'TESCOM TELEKOMÜNİKASYON VE İLETİŞİM HİZMETLERİ SANAYİ TİC. LTD. ŞTİ.'
+      : 'DREAM TELEKOMÜNİKASYON VE İLETİŞİM HİZMETLERİ SANAYİ TİC. LTD. ŞTİ.');
+    const companyAddress = company.address || (isTescom
+      ? 'Barbaros Hayrettin Paşa Mah. Şehitler Cad. Gümüş Recidence No:8 Daire : 310 Esenyurt / İstanbul'
+      : 'Barbaros Hayrettin Başa Mah. 1993 Sokak . No : 35 Papatya 2 Residence A Blok Daire :70 Kat 4 Beylikdüzü / İSTANBUL');
+    const companyPhone = company.phone || (isTescom ? '0212 908 0 444' : '0 212 929 99 00');
+    const companyFax = company.fax || (isTescom ? '0 212 908 0 445' : '');
+    const companyEmail = company.email || (isTescom ? 'info@tescom.com.tr' : 'info@dreamtelecom.com.tr');
+    const companyWebsite = company.website || (isTescom ? 'www.tescom.com.tr' : 'www.dreamtelecom.com.tr');
+
+    // Şirket Logosu Seçimi (Tescom veya Dream)
     let logoImageDef: any = {
-      text: 'DREAM TELECOM',
+      text: companyName.toUpperCase(),
       fontSize: 20,
       bold: true,
       color: corporateBlue,
     };
 
-    const logoPath = path.join(process.cwd(), 'assets', 'logo.png');
+    const logoFilename = isTescom ? 'tescom-logo.png' : 'logo.png';
+    const logoPath = path.join(process.cwd(), 'assets', logoFilename);
     if (fs.existsSync(logoPath)) {
       try {
         const logoBuffer = fs.readFileSync(logoPath);
         logoImageDef = {
           image: `data:image/png;base64,${logoBuffer.toString('base64')}`,
-          width: 140,
+          width: isTescom ? 150 : 140,
         };
       } catch (err) {
-        this.logger.warn('Logo okunamadı, metin kullanılacak');
+        this.logger.warn(`${logoFilename} okunamadı, metin kullanılacak`);
       }
     }
 
@@ -216,25 +233,32 @@ export class PdfService {
         {
           columns: [
             {
-              width: '55%',
+              width: '58%',
               stack: [
                 logoImageDef,
                 {
-                  text: 'Satış & Müşteri İlişkileri Portalı',
-                  fontSize: 8.5,
-                  color: '#64748B',
+                  text: companyTitle,
+                  fontSize: 7.5,
+                  bold: true,
+                  color: '#1E293B',
                   margin: [0, 4, 0, 0],
                 },
                 {
-                  text: 'info@dreamtelecom.com | +90 (850) 123 45 67 | www.dreamtelecom.com',
-                  fontSize: 8,
-                  color: '#94A3B8',
+                  text: companyAddress,
+                  fontSize: 7,
+                  color: '#64748B',
+                  margin: [0, 2, 0, 0],
+                },
+                {
+                  text: `${companyEmail} | Tel: ${companyPhone}${companyFax ? ` | Fax: ${companyFax}` : ''} | ${companyWebsite}`,
+                  fontSize: 7,
+                  color: '#64748B',
                   margin: [0, 2, 0, 0],
                 },
               ],
             },
             {
-              width: '45%',
+              width: '42%',
               stack: [
                 {
                   text: 'KURUMSAL TEKLİF FORMU',
@@ -322,6 +346,7 @@ export class PdfService {
                 },
                 { text: rep.fullName || '-', bold: true, fontSize: 10, color: '#0F172A' },
                 { text: `E-posta: ${rep.email || '-'}` },
+                ...(rep.phone ? [{ text: `Telefon: ${rep.phone}` }] : []),
               ],
             },
           ],
@@ -451,7 +476,7 @@ export class PdfService {
                   alignment: 'center',
                 },
                 {
-                  text: `${rep.fullName || 'Dream Telecom Yetkilisi'}`,
+                  text: `${rep.fullName || (isTescom ? 'Tescom Telecom Yetkilisi' : 'Dream Telecom Yetkilisi')}`,
                   fontSize: 9,
                   alignment: 'center',
                   margin: [0, 30, 0, 0],

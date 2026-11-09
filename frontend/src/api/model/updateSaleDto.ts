@@ -5,6 +5,7 @@
  * Dream Telecom Satış & Dağıtım Yönetim Sistemi (SDYS) kurumsal RESTful API ve Socket.io altyapısı. Frontend Orval React Query kod üretimi için OpenAPI 3.0 standardına tam uyumludur.
  * OpenAPI spec version: 1.0.0
  */
+import type { UpdateSaleDtoCurrency } from './updateSaleDtoCurrency';
 import type { UpdateSaleDtoPaymentStatus } from './updateSaleDtoPaymentStatus';
 
 export interface UpdateSaleDto {
@@ -13,6 +14,7 @@ export interface UpdateSaleDto {
   totalAmount?: string;
   /** Tahsil edilen peşinat / kısmi ödeme */
   paidAmount?: string;
+  currency?: UpdateSaleDtoCurrency;
   isInvoiced?: boolean;
   invoiceNumber?: string;
   invoiceDate?: string;

@@ -11,6 +11,7 @@ export interface UserDto {
   id: string;
   email: string;
   fullName: string;
+  phone?: string;
   role: UserDtoRole;
   isActive: boolean;
   createdAt: string;

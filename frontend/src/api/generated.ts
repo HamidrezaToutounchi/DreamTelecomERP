@@ -25,8 +25,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AnalyticsControllerGetDashboardSummaryParams,
   AnalyticsControllerGetDetailedReportsParams,
   AuditLogsControllerFindAllParams,
+  CompanyDto,
   CreateCustomerCategoryDto,
   CreateCustomerDto,
   CreateInteractionDto,
@@ -64,10 +66,12 @@ import type {
   ReviseQuoteDto,
   SaleDto,
   SalesControllerFindAllParams,
+  UpdateCompanyDto,
   UpdateCustomerDto,
   UpdateInteractionDto,
   UpdateLeadDto,
   UpdateProductDto,
+  UpdateProfileDto,
   UpdateQuoteStatusDto,
   UpdateSaleDto,
   UpdateUserDto,
@@ -337,6 +341,70 @@ export function useAuthControllerGetProfile<TData = Awaited<ReturnType<typeof au
 
 
 
+/**
+ * @summary Giriş yapan kullanıcının kendi profil bilgilerini ve parolasını güncellemesi
+ */
+export const authControllerUpdateProfile = (
+    updateProfileDto: UpdateProfileDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<UserProfileDto>(
+      {url: `/api/v1/auth/profile`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateProfileDto
+    },
+      options);
+    }
+  
+
+
+export const getAuthControllerUpdateProfileMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerUpdateProfile>>, TError,{data: UpdateProfileDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerUpdateProfile>>, TError,{data: UpdateProfileDto}, TContext> => {
+
+const mutationKey = ['authControllerUpdateProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerUpdateProfile>>, {data: UpdateProfileDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerUpdateProfile(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerUpdateProfileMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerUpdateProfile>>>
+    export type AuthControllerUpdateProfileMutationBody = UpdateProfileDto
+    export type AuthControllerUpdateProfileMutationError = unknown
+
+    /**
+ * @summary Giriş yapan kullanıcının kendi profil bilgilerini ve parolasını güncellemesi
+ */
+export const useAuthControllerUpdateProfile = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerUpdateProfile>>, TError,{data: UpdateProfileDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerUpdateProfile>>,
+        TError,
+        {data: UpdateProfileDto},
+        TContext
+      > => {
+
+      const mutationOptions = getAuthControllerUpdateProfileMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
 /**
  * @summary Yeni kullanıcı oluştur (Yalnızca Satış Müdürü)
  */
@@ -2734,17 +2802,16 @@ export const useSalesControllerUpdate = <TError = unknown,
     }
     
 /**
- * Temsilci bazlı satış tutarları, teklif dağılımları, toplam ciro, onay oranı ve dönüşüm metrikleri.
- * @summary Satış Müdürü Dashboard Özeti (KPI Kartları & Pasta Grafikler)
+ * @summary TCMB Güncel USD/TRY Döviz Kuru
  */
-export const analyticsControllerGetDashboardSummary = (
+export const analyticsControllerGetExchangeRate = (
     
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
 ) => {
       
       
-      return customInstance<DashboardSummaryResponseDto>(
-      {url: `/api/v1/analytics/dashboard-summary`, method: 'GET', signal
+      return customInstance<void>(
+      {url: `/api/v1/analytics/exchange-rate`, method: 'GET', signal
     },
       options);
     }
@@ -2752,23 +2819,118 @@ export const analyticsControllerGetDashboardSummary = (
 
 
 
-export const getAnalyticsControllerGetDashboardSummaryQueryKey = () => {
+export const getAnalyticsControllerGetExchangeRateQueryKey = () => {
     return [
-    `/api/v1/analytics/dashboard-summary`
+    `/api/v1/analytics/exchange-rate`
     ] as const;
     }
 
     
-export const getAnalyticsControllerGetDashboardSummaryQueryOptions = <TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getAnalyticsControllerGetExchangeRateQueryOptions = <TData = Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getAnalyticsControllerGetDashboardSummaryQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getAnalyticsControllerGetExchangeRateQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>> = ({ signal }) => analyticsControllerGetDashboardSummary(requestOptions, signal);
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>> = ({ signal }) => analyticsControllerGetExchangeRate(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AnalyticsControllerGetExchangeRateQueryResult = NonNullable<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>>
+export type AnalyticsControllerGetExchangeRateQueryError = unknown
+
+
+export function useAnalyticsControllerGetExchangeRate<TData = Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>,
+          TError,
+          Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAnalyticsControllerGetExchangeRate<TData = Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>,
+          TError,
+          Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAnalyticsControllerGetExchangeRate<TData = Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary TCMB Güncel USD/TRY Döviz Kuru
+ */
+
+export function useAnalyticsControllerGetExchangeRate<TData = Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetExchangeRate>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAnalyticsControllerGetExchangeRateQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * Temsilci bazlı satış tutarları, teklif dağılımları, toplam ciro, onay oranı ve dönüşüm metrikleri.
+ * @summary Satış Müdürü Dashboard Özeti (KPI Kartları & Pasta Grafikler)
+ */
+export const analyticsControllerGetDashboardSummary = (
+    params?: AnalyticsControllerGetDashboardSummaryParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DashboardSummaryResponseDto>(
+      {url: `/api/v1/analytics/dashboard-summary`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getAnalyticsControllerGetDashboardSummaryQueryKey = (params?: AnalyticsControllerGetDashboardSummaryParams,) => {
+    return [
+    `/api/v1/analytics/dashboard-summary`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getAnalyticsControllerGetDashboardSummaryQueryOptions = <TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>(params?: AnalyticsControllerGetDashboardSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAnalyticsControllerGetDashboardSummaryQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>> = ({ signal }) => analyticsControllerGetDashboardSummary(params, requestOptions, signal);
 
       
 
@@ -2782,7 +2944,7 @@ export type AnalyticsControllerGetDashboardSummaryQueryError = unknown
 
 
 export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>> & Pick<
+ params: undefined |  AnalyticsControllerGetDashboardSummaryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>,
           TError,
@@ -2792,7 +2954,7 @@ export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<Return
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>> & Pick<
+ params?: AnalyticsControllerGetDashboardSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>,
           TError,
@@ -2802,7 +2964,7 @@ export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<Return
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: AnalyticsControllerGetDashboardSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -2810,11 +2972,11 @@ export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<Return
  */
 
 export function useAnalyticsControllerGetDashboardSummary<TData = Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ params?: AnalyticsControllerGetDashboardSummaryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof analyticsControllerGetDashboardSummary>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getAnalyticsControllerGetDashboardSummaryQueryOptions(options)
+  const queryOptions = getAnalyticsControllerGetDashboardSummaryQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3679,6 +3841,257 @@ export const useProductsControllerRemove = <TError = unknown,
       > => {
 
       const mutationOptions = getProductsControllerRemoveMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Tüm şirket profillerini listele (Dream & Tescom)
+ */
+export const companiesControllerFindAll = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<CompanyDto[]>(
+      {url: `/api/v1/companies`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getCompaniesControllerFindAllQueryKey = () => {
+    return [
+    `/api/v1/companies`
+    ] as const;
+    }
+
+    
+export const getCompaniesControllerFindAllQueryOptions = <TData = Awaited<ReturnType<typeof companiesControllerFindAll>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompaniesControllerFindAllQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof companiesControllerFindAll>>> = ({ signal }) => companiesControllerFindAll(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CompaniesControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof companiesControllerFindAll>>>
+export type CompaniesControllerFindAllQueryError = unknown
+
+
+export function useCompaniesControllerFindAll<TData = Awaited<ReturnType<typeof companiesControllerFindAll>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof companiesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof companiesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompaniesControllerFindAll<TData = Awaited<ReturnType<typeof companiesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof companiesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof companiesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompaniesControllerFindAll<TData = Awaited<ReturnType<typeof companiesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tüm şirket profillerini listele (Dream & Tescom)
+ */
+
+export function useCompaniesControllerFindAll<TData = Awaited<ReturnType<typeof companiesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCompaniesControllerFindAllQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Şirket detayını getir
+ */
+export const companiesControllerFindOne = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<CompanyDto>(
+      {url: `/api/v1/companies/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getCompaniesControllerFindOneQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/companies/${id}`
+    ] as const;
+    }
+
+    
+export const getCompaniesControllerFindOneQueryOptions = <TData = Awaited<ReturnType<typeof companiesControllerFindOne>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCompaniesControllerFindOneQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof companiesControllerFindOne>>> = ({ signal }) => companiesControllerFindOne(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type CompaniesControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof companiesControllerFindOne>>>
+export type CompaniesControllerFindOneQueryError = unknown
+
+
+export function useCompaniesControllerFindOne<TData = Awaited<ReturnType<typeof companiesControllerFindOne>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof companiesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof companiesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompaniesControllerFindOne<TData = Awaited<ReturnType<typeof companiesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof companiesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof companiesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useCompaniesControllerFindOne<TData = Awaited<ReturnType<typeof companiesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Şirket detayını getir
+ */
+
+export function useCompaniesControllerFindOne<TData = Awaited<ReturnType<typeof companiesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof companiesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getCompaniesControllerFindOneQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Şirket bilgilerini güncelle (Ünvan, adres, telefon, e-posta, logo vb.)
+ */
+export const companiesControllerUpdate = (
+    id: string,
+    updateCompanyDto: UpdateCompanyDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<CompanyDto>(
+      {url: `/api/v1/companies/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateCompanyDto
+    },
+      options);
+    }
+  
+
+
+export const getCompaniesControllerUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof companiesControllerUpdate>>, TError,{id: string;data: UpdateCompanyDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof companiesControllerUpdate>>, TError,{id: string;data: UpdateCompanyDto}, TContext> => {
+
+const mutationKey = ['companiesControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof companiesControllerUpdate>>, {id: string;data: UpdateCompanyDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  companiesControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompaniesControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof companiesControllerUpdate>>>
+    export type CompaniesControllerUpdateMutationBody = UpdateCompanyDto
+    export type CompaniesControllerUpdateMutationError = unknown
+
+    /**
+ * @summary Şirket bilgilerini güncelle (Ünvan, adres, telefon, e-posta, logo vb.)
+ */
+export const useCompaniesControllerUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof companiesControllerUpdate>>, TError,{id: string;data: UpdateCompanyDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof companiesControllerUpdate>>,
+        TError,
+        {id: string;data: UpdateCompanyDto},
+        TContext
+      > => {
+
+      const mutationOptions = getCompaniesControllerUpdateMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

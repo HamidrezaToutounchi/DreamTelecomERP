@@ -19,9 +19,9 @@ export class CustomersService {
     private auditLogsService: AuditLogsService,
   ) {}
 
-  private checkRepAccess(customer: { createdById: string; assignedToId: string }, user: AuthenticatedUser) {
+  private checkRepAccess(customer: { createdById?: string; assignedToId: string }, user: AuthenticatedUser) {
     if (user.role === Role.SALES_REP) {
-      if (customer.createdById !== user.id && customer.assignedToId !== user.id) {
+      if (customer.assignedToId !== user.id) {
         throw new ForbiddenException('Bu müşteri kaydına erişim yetkiniz bulunmamaktadır.');
       }
     }
@@ -186,7 +186,7 @@ export class CustomersService {
     const where: Prisma.CustomerWhereInput = {};
 
     if (user.role === Role.SALES_REP) {
-      where.OR = [{ createdById: user.id }, { assignedToId: user.id }];
+      where.assignedToId = user.id;
     } else if (query.repId) {
       where.assignedToId = query.repId;
     }

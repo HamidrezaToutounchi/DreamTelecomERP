@@ -53,12 +53,50 @@ export class QuotesByRepItemDto {
   draftOrSentCount: number;
 }
 
+export class QuotesByCompanyItemDto {
+  @ApiProperty()
+  companyId: string;
+
+  @ApiProperty({ example: 'DREAM' })
+  companyCode: string;
+
+  @ApiProperty({ example: 'Dream Telecom' })
+  companyName: string;
+
+  @ApiProperty({ example: 15 })
+  totalQuotesCount: number;
+
+  @ApiProperty({ example: '250000.00' })
+  totalAmountTry: string;
+
+  @ApiProperty({ example: '4982.06' })
+  totalAmountUsd: string;
+
+  @ApiProperty({ example: 8 })
+  approvedCount: number;
+
+  @ApiProperty({ example: 2 })
+  rejectedCount: number;
+
+  @ApiProperty({ example: 3 })
+  revisedCount: number;
+
+  @ApiProperty({ example: 2 })
+  draftOrSentCount: number;
+}
+
 export class DashboardKpiDto {
-  @ApiProperty({ example: '450000.00', description: 'Toplam Onaylanmış / Gerçekleşen Ciro' })
+  @ApiProperty({ example: '450000.00', description: 'Toplam Onaylanmış / Gerçekleşen Ciro (TRY)' })
   totalRevenue: string;
 
-  @ApiProperty({ example: '85000.00', description: 'Bu Ay Gerçekleşen Satış Cirosu' })
+  @ApiProperty({ example: '13081.40', description: 'Toplam Onaylanmış / Gerçekleşen Ciro (USD)' })
+  totalRevenueUsd: string;
+
+  @ApiProperty({ example: '85000.00', description: 'Bu Ay Gerçekleşen Satış Cirosu (TRY)' })
   thisMonthSalesAmount: string;
+
+  @ApiProperty({ example: '2470.93', description: 'Bu Ay Gerçekleşen Satış Cirosu (USD)' })
+  thisMonthSalesAmountUsd: string;
 
   @ApiProperty({ example: 4, description: 'Bu Ay Yapılan Satış Adedi' })
   thisMonthSalesCount: number;
@@ -66,17 +104,33 @@ export class DashboardKpiDto {
   @ApiProperty({ example: '125000.00', description: 'Açık Teklif Tutarı (SENT & DRAFT)' })
   openQuotesAmount: string;
 
+  @ApiProperty({ example: '3633.72', description: 'Açık Teklif Tutarı (USD)' })
+  openQuotesAmountUsd: string;
+
+  @ApiProperty({ example: '34.40', description: 'TCMB USD/TRY Güncel Kuru' })
+  usdRate: string;
+
   @ApiProperty({ example: '62.50%', description: 'Teklif Onay Oranı' })
   quoteApprovalRate: string;
 
   @ApiProperty({ example: '85000.00', description: 'Faturası Bekleyen Satışların Tutarı' })
   pendingInvoiceSalesAmount: string;
 
+  @ApiProperty({ example: '2470.93', description: 'Faturası Bekleyen Satışların Tutarı (USD)' })
+  pendingInvoiceSalesAmountUsd: string;
+
   @ApiProperty({ example: 4, description: 'Faturası Bekleyen Satış Adedi' })
   pendingInvoiceSalesCount: number;
 
   @ApiProperty({ example: '31.25%', description: 'Lead Müşteriye Dönüşüm Oranı' })
   leadConversionRate: string;
+}
+
+export class DashboardSummaryQueryDto {
+  @ApiPropertyOptional({ description: 'Şirket ID filtresi (Dream veya Tescom)' })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
 }
 
 export class DashboardSummaryResponseDto {
@@ -91,9 +145,16 @@ export class DashboardSummaryResponseDto {
 
   @ApiProperty({ type: [QuotesByRepItemDto], description: 'Grafik: Temsilci Bazlı Teklif Sayıları ve Durum Dağılımı' })
   quotesByRep: QuotesByRepItemDto[];
+
+  @ApiProperty({ type: [QuotesByCompanyItemDto], description: 'Şirket Bazlı Teklif Dağılımı (Dream vs Tescom)' })
+  quotesByCompany: QuotesByCompanyItemDto[];
 }
 
 export class DetailedReportsQueryDto {
+  @ApiPropertyOptional({ description: 'Şirket ID filtresi (Dream veya Tescom)' })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
   @ApiPropertyOptional({ description: 'Başlangıç tarihi (ISO string)' })
   @IsDateString()
   @IsOptional()
@@ -132,7 +193,10 @@ export class DetailedReportsResponseDto {
   salesMetrics: {
     totalSalesCount: number;
     totalSalesVolume: string;
+    totalSalesVolumeUsd: string;
     thisMonthSalesVolume: string;
+    thisMonthSalesVolumeUsd: string;
+    usdRate: string;
     invoicedCount: number;
     pendingInvoiceCount: number;
   };
@@ -156,4 +220,7 @@ export class DetailedReportsResponseDto {
     conversionRate: string;
     leadsBySource: Record<string, number>;
   };
+
+  @ApiProperty({ type: [QuotesByCompanyItemDto], description: 'Şirket Dağılımı (Dream Telecom vs Tescom Telecom)' })
+  quotesByCompany: QuotesByCompanyItemDto[];
 }

@@ -1,8 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto, LoginResponseDto } from './dto/auth.dto';
+import { LoginDto, LoginResponseDto, UpdateProfileDto, UserProfileDto } from './dto/auth.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
@@ -52,6 +58,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        phone: user.phone,
         role: user.role,
         isActive: user.isActive,
         createdAt: user.createdAt,
@@ -59,13 +66,14 @@ export class AuthService {
     };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<UserProfileDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -78,4 +86,74 @@ export class AuthService {
 
     return user;
   }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserProfileDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Kullanıcı bulunamadı.');
+    }
+
+    const updateData: any = {};
+
+    if (dto.fullName) {
+      updateData.fullName = dto.fullName.trim();
+    }
+
+    if (dto.phone !== undefined) {
+      updateData.phone = dto.phone ? dto.phone.trim() : null;
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const emailTrimmed = dto.email.trim().toLowerCase();
+      const existing = await this.prisma.user.findUnique({
+        where: { email: emailTrimmed },
+      });
+      if (existing && existing.id !== userId) {
+        throw new ConflictException('Bu e-posta adresi sistemde başka bir kullanıcı tarafından kullanılıyor.');
+      }
+      updateData.email = emailTrimmed;
+    }
+
+    if (dto.newPassword) {
+      if (!dto.currentPassword) {
+        throw new BadRequestException('Parolanızı değiştirmek için mevcut parolanızı girmelisiniz.');
+      }
+      const isCurrentValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+      if (!isCurrentValid) {
+        throw new BadRequestException('Mevcut parolanız hatalı.');
+      }
+      updateData.passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    await this.auditLogsService.log({
+      userId: user.id,
+      userName: updatedUser.fullName,
+      userEmail: updatedUser.email,
+      userRole: updatedUser.role,
+      action: 'UPDATE',
+      entity: 'USER',
+      entityId: user.id,
+      details: `"${updatedUser.fullName}" kullanıcısı profil bilgilerini güncelledi.`,
+    });
+
+    return updatedUser;
+  }
 }
+

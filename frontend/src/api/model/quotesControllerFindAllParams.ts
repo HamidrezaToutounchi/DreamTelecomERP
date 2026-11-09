@@ -44,4 +44,8 @@ dateFrom?: string;
  * Bitiş tarihi filtresi (ISO string)
  */
 dateTo?: string;
+/**
+ * Şirket Filtresi (Dream veya Tescom ID)
+ */
+companyId?: string;
 };

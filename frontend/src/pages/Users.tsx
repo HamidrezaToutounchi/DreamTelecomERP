@@ -10,6 +10,9 @@ import {
   KeyRound,
   Mail,
   User,
+  Phone,
+  Pencil,
+  Shield,
 } from 'lucide-react';
 import {
   useUsersControllerFindAll,
@@ -29,8 +32,59 @@ export const UsersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>(Role.SALES_REP);
+
+  // Düzenleme Modalı State'leri
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [editFullName, setEditFullName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editRole, setEditRole] = useState<Role>(Role.SALES_REP);
+  const [editIsActive, setEditIsActive] = useState(true);
+
+  const handleOpenEdit = (u: any) => {
+    setSelectedUser(u);
+    setEditFullName(u.fullName || '');
+    setEditEmail(u.email || '');
+    setEditPhone(u.phone || '');
+    setEditPassword('');
+    setEditRole(u.role || Role.SALES_REP);
+    setEditIsActive(u.isActive !== false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser) return;
+    if (!editFullName.trim() || !editEmail.trim()) {
+      toast.error('Ad Soyad ve E-posta alanları zorunludur.');
+      return;
+    }
+
+    try {
+      await updateUserMutation.mutateAsync({
+        id: selectedUser.id,
+        data: {
+          fullName: editFullName.trim(),
+          email: editEmail.trim(),
+          phone: editPhone.trim() || undefined,
+          role: editRole,
+          isActive: editIsActive,
+          ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
+        },
+      });
+      toast.success('Kullanıcı bilgileri başarıyla güncellendi.');
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
+      refetch();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Kullanıcı bilgileri güncellenemedi.');
+    }
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +98,7 @@ export const UsersPage: React.FC = () => {
         data: {
           fullName,
           email,
+          phone: phone.trim() || undefined,
           password,
           role,
         },
@@ -52,6 +107,7 @@ export const UsersPage: React.FC = () => {
       setIsModalOpen(false);
       setFullName('');
       setEmail('');
+      setPhone('');
       setPassword('');
       setRole(Role.SALES_REP);
       refetch();
@@ -118,6 +174,7 @@ export const UsersPage: React.FC = () => {
                 <tr>
                   <th className="px-4 py-3">Kullanıcı Adı</th>
                   <th className="px-4 py-3">E-posta</th>
+                  <th className="px-4 py-3">Telefon</th>
                   <th className="px-4 py-3">Rol</th>
                   <th className="px-4 py-3">Durum</th>
                   <th className="px-4 py-3">Kayıt Tarihi</th>
@@ -134,6 +191,7 @@ export const UsersPage: React.FC = () => {
                       {u.fullName}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground font-mono">{u.email}</td>
+                    <td className="px-4 py-3 text-muted-foreground font-mono">{u.phone || '-'}</td>
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -170,18 +228,30 @@ export const UsersPage: React.FC = () => {
                       {formatDate(u.createdAt, 'dd.MM.yyyy')}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(u.id, u.isActive !== false, u.fullName)}
-                        className={cn(
-                          'text-xs font-semibold px-2.5 py-1 rounded-md border transition-colors cursor-pointer',
-                          u.isActive !== false
-                            ? 'border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40'
-                            : 'border-green-200 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/40',
-                        )}
-                      >
-                        {u.isActive !== false ? 'Pasife Al' : 'Aktif Et'}
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(u)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                          title="Kullanıcı Bilgilerini Güncelle"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-navy-700 dark:text-navy-400" />
+                          <span>Düzenle</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(u.id, u.isActive !== false, u.fullName)}
+                          className={cn(
+                            'text-xs font-semibold px-2.5 py-1 rounded-md border transition-colors cursor-pointer',
+                            u.isActive !== false
+                              ? 'border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40'
+                              : 'border-green-200 text-green-700 hover:bg-green-50 dark:hover:bg-green-950/40',
+                          )}
+                        >
+                          {u.isActive !== false ? 'Pasife Al' : 'Aktif Et'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -246,6 +316,22 @@ export const UsersPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
+                  Telefon Numarası
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="tel"
+                    placeholder="Örn: 0555 123 45 67"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
                   Geçici Parola <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -290,6 +376,157 @@ export const UsersPage: React.FC = () => {
                   className="px-4 py-2 rounded-lg bg-navy-700 text-white text-xs font-semibold hover:bg-navy-800 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {createUserMutation.isPending ? 'Ekleniyor...' : 'Kullanıcıyı Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Kullanıcı Düzenleme Modalı */}
+      {isEditModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Pencil className="w-4 h-4 text-navy-700" />
+                  Kullanıcı Bilgilerini Güncelle
+                </h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {selectedUser.fullName} ({selectedUser.email})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedUser(null);
+                }}
+                className="text-slate-400 hover:text-foreground text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateUser} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Ad Soyad <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    required
+                    value={editFullName}
+                    onChange={(e) => setEditFullName(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  E-posta <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Telefon Numarası
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="tel"
+                    placeholder="Örn: 0555 123 45 67"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1">
+                    Sistem Rolü <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value as Role)}
+                    className="w-full px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-semibold cursor-pointer"
+                  >
+                    <option value={Role.SALES_REP}>Satış Temsilcisi</option>
+                    <option value={Role.SALES_MANAGER}>Satış Müdürü</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-foreground mb-1">
+                    Hesap Durumu <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={editIsActive ? 'active' : 'inactive'}
+                    onChange={(e) => setEditIsActive(e.target.value === 'active')}
+                    className="w-full px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-semibold cursor-pointer"
+                  >
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-foreground">
+                    Yeni Parola
+                  </label>
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    (Değiştirmek istemiyorsanız boş bırakın)
+                  </span>
+                </div>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="password"
+                    minLength={6}
+                    placeholder="Yeni parola belirle (Opsiyonel)"
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedUser(null);
+                  }}
+                  className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateUserMutation.isPending}
+                  className="px-4 py-2 rounded-lg bg-navy-700 text-white text-xs font-semibold hover:bg-navy-800 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {updateUserMutation.isPending ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
                 </button>
               </div>
             </form>

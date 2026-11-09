@@ -9,6 +9,8 @@ import type { ReviseQuoteDtoCurrency } from './reviseQuoteDtoCurrency';
 import type { CreateQuoteItemDto } from './createQuoteItemDto';
 
 export interface ReviseQuoteDto {
+  /** Teklif Veren Şirket ID */
+  companyId?: string;
   validUntil?: string;
   currency?: ReviseQuoteDtoCurrency;
   notes?: string;

@@ -75,6 +75,11 @@ export class CreateQuoteItemDto {
 }
 
 export class CreateQuoteDto {
+  @ApiPropertyOptional({ description: 'Teklif Veren Şirket ID (Dream veya Tescom)' })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
+
   @ApiProperty({ description: 'Müşteri ID' })
   @IsUUID()
   @IsNotEmpty()
@@ -120,6 +125,11 @@ export class UpdateQuoteStatusDto {
 }
 
 export class ReviseQuoteDto {
+  @ApiPropertyOptional({ description: 'Teklif Veren Şirket ID' })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
+
   @ApiPropertyOptional({ example: '2026-12-31T23:59:59.000Z' })
   @IsDateString()
   @IsOptional()
@@ -196,6 +206,12 @@ export class QuoteDto {
   @ApiProperty({ example: 'DT-2026-0001', description: 'Monospace teklif numarası' })
   quoteNumber: string;
 
+  @ApiPropertyOptional()
+  companyId?: string | null;
+
+  @ApiPropertyOptional()
+  company?: { id: string; code: string; name: string; title: string; logoUrl?: string | null; phone: string; email: string };
+
   @ApiProperty()
   customerId: string;
 
@@ -251,7 +267,12 @@ export class QuoteDto {
   updatedAt: Date;
 }
 
-export class QuoteQueryDto extends PaginationQueryDto {}
+export class QuoteQueryDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ description: 'Şirket Filtresi (Dream veya Tescom ID)' })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
+}
 
 export class PaginatedQuoteResponseDto {
   @ApiProperty({ type: [QuoteDto] })

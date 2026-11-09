@@ -34,9 +34,9 @@ export class QuotesService {
     }
   }
 
-  private async generateNextQuoteNumber(): Promise<string> {
+  private async generateNextQuoteNumber(companyCode?: string): Promise<string> {
     const year = new Date().getFullYear();
-    const prefix = `DT-${year}-`;
+    const prefix = companyCode === 'TESCOM' ? `TS-${year}-` : `DT-${year}-`;
 
     const count = await this.prisma.quote.count({
       where: {
@@ -59,17 +59,28 @@ export class QuotesService {
       throw new NotFoundException('Müşteri bulunamadı.');
     }
 
-    if (user.role === Role.SALES_REP && customer.createdById !== user.id && customer.assignedToId !== user.id) {
-      throw new ForbiddenException('Bu müşteri için teklif oluşturma yetkiniz yok.');
+    if (user.role === Role.SALES_REP && customer.assignedToId !== user.id) {
+      throw new ForbiddenException('Bu müşteri sizin portföyünüzde bulunmamaktadır.');
     }
 
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('Teklifte en az bir ürün kalemi bulunmalıdır.');
     }
 
+    // Şirket çözümlemesi (Dream veya Tescom)
+    let companyId = dto.companyId;
+    let company = null;
+    if (companyId) {
+      company = await this.prisma.company.findUnique({ where: { id: companyId } });
+    }
+    if (!company) {
+      company = await this.prisma.company.findUnique({ where: { code: 'DREAM' } });
+      companyId = company?.id;
+    }
+
     const { subTotal, taxTotal, grandTotal, calculatedItems } = DecimalUtil.calculateQuoteTotals(dto.items);
 
-    const quoteNumber = await this.generateNextQuoteNumber();
+    const quoteNumber = await this.generateNextQuoteNumber(company?.code);
     const validUntilDate = dto.validUntil
       ? new Date(dto.validUntil)
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days default
@@ -77,6 +88,7 @@ export class QuotesService {
     const quote = await this.prisma.quote.create({
       data: {
         quoteNumber,
+        companyId,
         customerId: dto.customerId,
         repId: user.id,
         version: 1,
@@ -106,8 +118,9 @@ export class QuotesService {
         },
       },
       include: {
+        company: true,
         customer: { select: { id: true, companyName: true, contactPerson: true, phone: true, email: true } },
-        rep: { select: { id: true, fullName: true, email: true } },
+        rep: { select: { id: true, fullName: true, email: true, phone: true } },
         items: true,
       },
     });
@@ -145,6 +158,10 @@ export class QuotesService {
       where.status = query.status as QuoteStatus;
     }
 
+    if (query.companyId) {
+      where.companyId = query.companyId;
+    }
+
     if (query.dateFrom || query.dateTo) {
       where.createdAt = {};
       if (query.dateFrom) where.createdAt.gte = new Date(query.dateFrom);
@@ -172,8 +189,9 @@ export class QuotesService {
         take: pageSize,
         orderBy: { [sortBy]: sortOrder },
         include: {
+          company: true,
           customer: { select: { id: true, companyName: true, contactPerson: true, phone: true, email: true } },
-          rep: { select: { id: true, fullName: true, email: true } },
+          rep: { select: { id: true, fullName: true, email: true, phone: true } },
           items: true,
           sales: { select: { id: true, createdAt: true, invoiceNumber: true } },
         },
@@ -195,8 +213,9 @@ export class QuotesService {
     const quote = await this.prisma.quote.findUnique({
       where: { id },
       include: {
+        company: true,
         customer: true,
-        rep: { select: { id: true, fullName: true, email: true } },
+        rep: { select: { id: true, fullName: true, email: true, phone: true } },
         items: true,
         sales: { select: { id: true, createdAt: true, invoiceNumber: true } },
         parentQuote: { select: { id: true, quoteNumber: true, version: true } },
@@ -231,8 +250,9 @@ export class QuotesService {
         rejectionReason: dto.status === QuoteStatus.REJECTED ? dto.rejectionReason : null,
       },
       include: {
+        company: true,
         customer: { select: { id: true, companyName: true, contactPerson: true, phone: true, email: true } },
-        rep: { select: { id: true, fullName: true, email: true } },
+        rep: { select: { id: true, fullName: true, email: true, phone: true } },
         items: true,
       },
     });
@@ -302,6 +322,7 @@ export class QuotesService {
     const newQuote = await this.prisma.quote.create({
       data: {
         quoteNumber: newQuoteNumber,
+        companyId: dto.companyId || existingQuote.companyId,
         customerId: existingQuote.customerId,
         repId: existingQuote.repId,
         version: nextVersion,
@@ -332,8 +353,9 @@ export class QuotesService {
         },
       },
       include: {
+        company: true,
         customer: { select: { id: true, companyName: true, contactPerson: true, phone: true, email: true } },
-        rep: { select: { id: true, fullName: true, email: true } },
+        rep: { select: { id: true, fullName: true, email: true, phone: true } },
         items: true,
       },
     });
@@ -345,8 +367,9 @@ export class QuotesService {
     const quote = await this.prisma.quote.findUnique({
       where: { id },
       include: {
+        company: true,
         customer: true,
-        rep: { select: { id: true, fullName: true, email: true } },
+        rep: { select: { id: true, fullName: true, email: true, phone: true } },
         items: true,
       },
     });

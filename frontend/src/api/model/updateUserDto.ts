@@ -8,7 +8,9 @@
 import type { UpdateUserDtoRole } from './updateUserDtoRole';
 
 export interface UpdateUserDto {
+  email?: string;
   fullName?: string;
+  phone?: string;
   password?: string;
   role?: UpdateUserDtoRole;
   isActive?: boolean;

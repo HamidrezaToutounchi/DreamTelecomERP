@@ -207,6 +207,43 @@
         ]
       }
     },
+    "/api/v1/auth/profile": {
+      "patch": {
+        "operationId": "AuthController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Güncellenmiş kullanıcı profili",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Giriş yapan kullanıcının kendi profil bilgilerini ve parolasını güncellemesi",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v1/users": {
       "post": {
         "operationId": "UsersController_create",
@@ -1395,6 +1432,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "description": "Şirket Filtresi (Dream veya Tescom ID)",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1736,6 +1782,15 @@
                 "PAID"
               ]
             }
+          },
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "description": "Şirket ID filtresi (Dream veya Tescom)",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1841,11 +1896,41 @@
         ]
       }
     },
+    "/api/v1/analytics/exchange-rate": {
+      "get": {
+        "operationId": "AnalyticsController_getExchangeRate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "TCMB Güncel USD/TRY Döviz Kuru",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
     "/api/v1/analytics/dashboard-summary": {
       "get": {
         "description": "Temsilci bazlı satış tutarları, teklif dağılımları, toplam ciro, onay oranı ve dönüşüm metrikleri.",
         "operationId": "AnalyticsController_getDashboardSummary",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "description": "Şirket ID filtresi (Dream veya Tescom)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -1874,6 +1959,15 @@
         "description": "Tarih aralığı, temsilci, teklif durumu, fatura durumu ve lead kaynağına göre filtrelenebilir metrikler.",
         "operationId": "AnalyticsController_getDetailedReports",
         "parameters": [
+          {
+            "name": "companyId",
+            "required": false,
+            "in": "query",
+            "description": "Şirket ID filtresi (Dream veya Tescom)",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "dateFrom",
             "required": false,
@@ -2402,6 +2496,116 @@
           "Products"
         ]
       }
+    },
+    "/api/v1/companies": {
+      "get": {
+        "operationId": "CompaniesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tüm şirket profillerini listele (Dream & Tescom)",
+        "tags": [
+          "Companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{id}": {
+      "get": {
+        "operationId": "CompaniesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Şirket detayını getir",
+        "tags": [
+          "Companies"
+        ]
+      },
+      "patch": {
+        "operationId": "CompaniesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Şirket bilgilerini güncelle (Ünvan, adres, telefon, e-posta, logo vb.)",
+        "tags": [
+          "Companies"
+        ]
+      }
     }
   },
   "info": {
@@ -2591,6 +2795,10 @@
             "type": "string",
             "example": "Ahmet Yılmaz"
           },
+          "phone": {
+            "type": "object",
+            "example": "05551234567"
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -2638,6 +2846,33 @@
           "user"
         ]
       },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "phone": {
+            "type": "string",
+            "example": "05551234567"
+          },
+          "email": {
+            "type": "string",
+            "example": "ahmet@dreamtelecom.com"
+          },
+          "currentPassword": {
+            "type": "string",
+            "example": "OldPass123!",
+            "description": "Parola değiştirilmek isteniyorsa mevcut parola zorunludur"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NewPass123!",
+            "description": "Yeni parola (en az 6 karakter)"
+          }
+        }
+      },
       "CreateUserDto": {
         "type": "object",
         "properties": {
@@ -2648,6 +2883,10 @@
           "fullName": {
             "type": "string",
             "example": "Ahmet Yılmaz"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0555 123 45 67"
           },
           "password": {
             "type": "string",
@@ -2681,6 +2920,9 @@
           "fullName": {
             "type": "string"
           },
+          "phone": {
+            "type": "string"
+          },
           "role": {
             "type": "string",
             "enum": [
@@ -2708,9 +2950,17 @@
       "UpdateUserDto": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "ahmet@dreamtelecom.com"
+          },
           "fullName": {
             "type": "string",
             "example": "Ahmet Yılmaz"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0555 123 45 67"
           },
           "password": {
             "type": "string",
@@ -3453,6 +3703,10 @@
       "CreateQuoteDto": {
         "type": "object",
         "properties": {
+          "companyId": {
+            "type": "string",
+            "description": "Teklif Veren Şirket ID (Dream veya Tescom)"
+          },
           "customerId": {
             "type": "string",
             "description": "Müşteri ID"
@@ -3560,6 +3814,12 @@
             "type": "string",
             "example": "DT-2026-0001",
             "description": "Monospace teklif numarası"
+          },
+          "companyId": {
+            "type": "object"
+          },
+          "company": {
+            "type": "object"
           },
           "customerId": {
             "type": "string"
@@ -3700,6 +3960,10 @@
       "ReviseQuoteDto": {
         "type": "object",
         "properties": {
+          "companyId": {
+            "type": "string",
+            "description": "Teklif Veren Şirket ID"
+          },
           "validUntil": {
             "type": "string",
             "example": "2026-12-31T23:59:59.000Z"
@@ -3940,6 +4204,15 @@
             "example": "15000.00",
             "description": "Tahsil edilen peşinat / kısmi ödeme"
           },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "example": "TRY"
+          },
           "isInvoiced": {
             "type": "boolean",
             "default": true
@@ -3971,12 +4244,22 @@
           "totalRevenue": {
             "type": "string",
             "example": "450000.00",
-            "description": "Toplam Onaylanmış / Gerçekleşen Ciro"
+            "description": "Toplam Onaylanmış / Gerçekleşen Ciro (TRY)"
+          },
+          "totalRevenueUsd": {
+            "type": "string",
+            "example": "13081.40",
+            "description": "Toplam Onaylanmış / Gerçekleşen Ciro (USD)"
           },
           "thisMonthSalesAmount": {
             "type": "string",
             "example": "85000.00",
-            "description": "Bu Ay Gerçekleşen Satış Cirosu"
+            "description": "Bu Ay Gerçekleşen Satış Cirosu (TRY)"
+          },
+          "thisMonthSalesAmountUsd": {
+            "type": "string",
+            "example": "2470.93",
+            "description": "Bu Ay Gerçekleşen Satış Cirosu (USD)"
           },
           "thisMonthSalesCount": {
             "type": "number",
@@ -3988,6 +4271,16 @@
             "example": "125000.00",
             "description": "Açık Teklif Tutarı (SENT & DRAFT)"
           },
+          "openQuotesAmountUsd": {
+            "type": "string",
+            "example": "3633.72",
+            "description": "Açık Teklif Tutarı (USD)"
+          },
+          "usdRate": {
+            "type": "string",
+            "example": "34.40",
+            "description": "TCMB USD/TRY Güncel Kuru"
+          },
           "quoteApprovalRate": {
             "type": "string",
             "example": "62.50%",
@@ -3997,6 +4290,11 @@
             "type": "string",
             "example": "85000.00",
             "description": "Faturası Bekleyen Satışların Tutarı"
+          },
+          "pendingInvoiceSalesAmountUsd": {
+            "type": "string",
+            "example": "2470.93",
+            "description": "Faturası Bekleyen Satışların Tutarı (USD)"
           },
           "pendingInvoiceSalesCount": {
             "type": "number",
@@ -4011,11 +4309,16 @@
         },
         "required": [
           "totalRevenue",
+          "totalRevenueUsd",
           "thisMonthSalesAmount",
+          "thisMonthSalesAmountUsd",
           "thisMonthSalesCount",
           "openQuotesAmount",
+          "openQuotesAmountUsd",
+          "usdRate",
           "quoteApprovalRate",
           "pendingInvoiceSalesAmount",
+          "pendingInvoiceSalesAmountUsd",
           "pendingInvoiceSalesCount",
           "leadConversionRate"
         ]
@@ -4110,6 +4413,62 @@
           "draftOrSentCount"
         ]
       },
+      "QuotesByCompanyItemDto": {
+        "type": "object",
+        "properties": {
+          "companyId": {
+            "type": "string"
+          },
+          "companyCode": {
+            "type": "string",
+            "example": "DREAM"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Dream Telecom"
+          },
+          "totalQuotesCount": {
+            "type": "number",
+            "example": 15
+          },
+          "totalAmountTry": {
+            "type": "string",
+            "example": "250000.00"
+          },
+          "totalAmountUsd": {
+            "type": "string",
+            "example": "4982.06"
+          },
+          "approvedCount": {
+            "type": "number",
+            "example": 8
+          },
+          "rejectedCount": {
+            "type": "number",
+            "example": 2
+          },
+          "revisedCount": {
+            "type": "number",
+            "example": 3
+          },
+          "draftOrSentCount": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "companyId",
+          "companyCode",
+          "companyName",
+          "totalQuotesCount",
+          "totalAmountTry",
+          "totalAmountUsd",
+          "approvedCount",
+          "rejectedCount",
+          "revisedCount",
+          "draftOrSentCount"
+        ]
+      },
       "DashboardSummaryResponseDto": {
         "type": "object",
         "properties": {
@@ -4136,13 +4495,21 @@
             "items": {
               "$ref": "#/components/schemas/QuotesByRepItemDto"
             }
+          },
+          "quotesByCompany": {
+            "description": "Şirket Bazlı Teklif Dağılımı (Dream vs Tescom)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuotesByCompanyItemDto"
+            }
           }
         },
         "required": [
           "kpis",
           "salesByRep",
           "salesByCategory",
-          "quotesByRep"
+          "quotesByRep",
+          "quotesByCompany"
         ]
       },
       "DetailedReportsResponseDto": {
@@ -4159,13 +4526,21 @@
           },
           "leadMetrics": {
             "type": "object"
+          },
+          "quotesByCompany": {
+            "description": "Şirket Dağılımı (Dream Telecom vs Tescom Telecom)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuotesByCompanyItemDto"
+            }
           }
         },
         "required": [
           "period",
           "salesMetrics",
           "quoteMetrics",
-          "leadMetrics"
+          "leadMetrics",
+          "quotesByCompany"
         ]
       },
       "CreateCustomerCategoryDto": {
@@ -4443,6 +4818,113 @@
             "example": 20
           },
           "imageUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "CompanyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "example": "DREAM"
+          },
+          "name": {
+            "type": "string",
+            "example": "Dream Telecom"
+          },
+          "title": {
+            "type": "string",
+            "example": "DREAM TELEKOMÜNİKASYON VE İLETİŞİM HİZMETLERİ SANAYİ TİC. LTD. ŞTİ."
+          },
+          "address": {
+            "type": "string",
+            "example": "Barbaros Hayrettin Başa Mah. 1993 Sokak . No : 35 Papatya 2 Residence A Blok Daire :70 Kat 4 Beylikdüzü / İSTANBUL"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0 212 929 99 00"
+          },
+          "fax": {
+            "type": "string",
+            "example": "0 212 908 0 445"
+          },
+          "email": {
+            "type": "string",
+            "example": "info@dreamtelecom.com.tr"
+          },
+          "website": {
+            "type": "string",
+            "example": "www.dreamtelecom.com.tr"
+          },
+          "taxOffice": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "string"
+          },
+          "bankInfo": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "/logo.png"
+          },
+          "primaryColor": {
+            "type": "string",
+            "example": "#004A93"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "title",
+          "address",
+          "phone",
+          "email"
+        ]
+      },
+      "UpdateCompanyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "fax": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "taxOffice": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "string"
+          },
+          "bankInfo": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "primaryColor": {
             "type": "string"
           }
         }

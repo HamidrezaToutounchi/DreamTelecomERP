@@ -9,6 +9,10 @@ import type { AnalyticsControllerGetDetailedReportsQuoteStatus } from './analyti
 
 export type AnalyticsControllerGetDetailedReportsParams = {
 /**
+ * Şirket ID filtresi (Dream veya Tescom)
+ */
+companyId?: string;
+/**
  * Başlangıç tarihi (ISO string)
  */
 dateFrom?: string;

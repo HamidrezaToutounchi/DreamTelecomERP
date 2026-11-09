@@ -20,6 +20,7 @@ import {
   useQuotesControllerRevise,
   useCustomersControllerFindAll,
   useProductsControllerFindAll,
+  useCompaniesControllerFindAll,
 } from '@/api/generated';
 import { formatMoney } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
@@ -61,7 +62,9 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
   const createMutation = useQuotesControllerCreate();
   const reviseMutation = useQuotesControllerRevise();
 
+  const [companyId, setCompanyId] = useState<string>('');
   const [customerId, setCustomerId] = useState(fixedCustomerId || '');
+  const [currency, setCurrency] = useState<'TRY' | 'USD'>('TRY');
   const [validUntil, setValidUntil] = useState('');
   const [notes, setNotes] = useState('');
   const [terms, setTerms] = useState(
@@ -79,6 +82,13 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
       taxRate: 20,
     },
   ]);
+
+  // Companies query (Dream Telecom & Tescom Telecom)
+  const { data: companiesData } = useCompaniesControllerFindAll({
+    query: { enabled: isOpen },
+  });
+
+  const companies: any[] = (companiesData as any) || [];
 
   // Customers query (only if not fixedCustomerId and creating)
   const { data: customersData } = useCustomersControllerFindAll(
@@ -100,7 +110,9 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
     if (!isOpen) return;
 
     if (mode === 'revise' && initialQuote) {
+      setCompanyId(initialQuote.companyId || initialQuote.company?.id || '');
       setCustomerId(initialQuote.customerId || '');
+      setCurrency(initialQuote.currency || 'TRY');
       setNotes(initialQuote.notes || '');
       setTerms(initialQuote.terms || '');
       setValidUntil(
@@ -128,6 +140,10 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
       }
     } else {
       // Create mode
+      if (companies.length > 0 && !companyId) {
+        const defaultComp = companies.find((c: any) => c.code === 'DREAM') || companies[0];
+        setCompanyId(defaultComp.id);
+      }
       setCustomerId(fixedCustomerId || '');
       setNotes('');
       setTerms(
@@ -210,7 +226,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/api/v1/uploads/product-image', formData, {
+      const res = await axios.post('/api/v1/uploads/product-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
@@ -251,6 +267,8 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
         const revised = await reviseMutation.mutateAsync({
           id: initialQuote.id,
           data: {
+            companyId: companyId || undefined,
+            currency: currency as any,
             items: items.map((i, idx) => ({
               productId: i.productId || undefined,
               productName: i.productName.trim(),
@@ -279,7 +297,9 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
       } else {
         const created = await createMutation.mutateAsync({
           data: {
+            companyId: companyId || undefined,
             customerId: targetCustId,
+            currency: currency as any,
             items: items.map((i, idx) => ({
               productId: i.productId || undefined,
               productName: i.productName.trim(),
@@ -314,8 +334,8 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
   const isPending = createMutation.isPending || reviseMutation.isPending;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-card w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5">
+      <div className="bg-card w-full max-w-5xl lg:max-w-6xl max-h-[94vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-2xl space-y-4">
         {/* Başlık */}
         <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -339,8 +359,73 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Müşteri ve Geçerlilik Tarihi */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Teklif Veren Şirket Seçimi (Dream Telecom & Tescom Telecom) */}
+          <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground flex items-center gap-2">
+                <span>🏢 Teklif Veren Şirket</span>
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  (Resmi antet, iletişim ve logo otomatik basılır)
+                </span>
+              </label>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {companies.map((comp: any) => {
+                const isSelected = companyId === comp.id || (!companyId && comp.code === 'DREAM');
+                const isTescom = comp.code === 'TESCOM';
+                return (
+                  <button
+                    key={comp.id}
+                    type="button"
+                    onClick={() => {
+                      setCompanyId(comp.id);
+                      if (comp.code === 'TESCOM') {
+                        setTerms(
+                          '1. Teklif 30 gün süreyle geçerlidir.\n2. Fiyatlarımıza KDV dahildir.\n3. Kurulum ve devreye alma Tescom Telecom teknik ekibince yapılacaktır.\n4. Cihazlar 2 yıl Tescom ve distribütör garantisi kapsamındadır.',
+                        );
+                      } else {
+                        setTerms(
+                          '1. Teklif 30 gün süreyle geçerlidir.\n2. Fiyatlarımıza KDV dahildir.\n3. Kurulum ve devreye alma Dream Telecom uzman ekiplerince yapılacaktır.\n4. Cihazlar 2 yıl Dream Telecom ve üretici garantisi kapsamındadır.',
+                        );
+                      }
+                    }}
+                    className={cn(
+                      'flex items-center gap-3 p-2.5 rounded-xl border text-left transition-all cursor-pointer',
+                      isSelected
+                        ? isTescom
+                          ? 'border-sky-500 bg-sky-50/80 dark:bg-sky-950/40 text-sky-950 dark:text-sky-100 ring-2 ring-sky-500/30 shadow-xs'
+                          : 'border-navy-600 bg-navy-50/80 dark:bg-navy-950/40 text-navy-950 dark:text-navy-100 ring-2 ring-navy-600/30 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-700 bg-card text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800',
+                    )}
+                  >
+                    <div className="h-8 w-20 flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-200/60 dark:border-slate-700 shrink-0">
+                      <img
+                        src={comp.logoUrl || (isTescom ? '/tescom-logo.png' : '/logo.png')}
+                        alt={comp.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-black truncate">{comp.name}</span>
+                        {isSelected && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                            ✓ Aktif
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground block truncate">
+                        {isTescom ? 'TS- Serisi Teklif Numarası' : 'DT- Serisi Teklif Numarası'}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Müşteri, Para Birimi ve Geçerlilik Tarihi */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {mode === 'create' && !fixedCustomerId ? (
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-foreground">
@@ -369,6 +454,18 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
                 </div>
               </div>
             )}
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-foreground">Teklif Para Birimi</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as any)}
+                className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-bold cursor-pointer"
+              >
+                <option value="TRY">₺ Türk Lirası (TRY)</option>
+                <option value="USD">$ Amerikan Doları (USD)</option>
+              </select>
+            </div>
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-foreground">Teklif Geçerlilik Tarihi</label>
@@ -418,7 +515,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1.5">
               {items.map((item, idx) => (
                 <div
                   key={idx}
@@ -547,7 +644,9 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
 
                     {/* Birim Fiyat */}
                     <div className="md:col-span-2 space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground block">Birim Fiyat (TL)</label>
+                      <label className="text-[10px] font-bold text-muted-foreground block">
+                        Birim Fiyat ({currency === 'USD' ? 'USD $' : 'TL ₺'})
+                      </label>
                       <input
                         type="text"
                         value={item.unitPrice}
@@ -634,40 +733,60 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
           <div className="bg-slate-100/70 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col items-end gap-1.5 text-xs">
             <div>
               <span className="text-muted-foreground mr-3">Ara Toplam:</span>
-              <span className="font-mono font-bold text-foreground">{formatMoney(totals.subTotal)}</span>
+              <span className="font-mono font-bold text-foreground">{formatMoney(totals.subTotal, currency)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground mr-3">KDV Toplamı (%20):</span>
-              <span className="font-mono font-bold text-foreground">{formatMoney(totals.taxTotal)}</span>
+              <span className="text-muted-foreground mr-3">KDV Toplamı:</span>
+              <span className="font-mono font-bold text-foreground">{formatMoney(totals.taxTotal, currency)}</span>
             </div>
             <div className="border-t border-slate-200 dark:border-slate-700 pt-1 mt-1 text-sm">
               <span className="font-extrabold text-navy-700 dark:text-navy-300 mr-3">GENEL TOPLAM:</span>
               <span className="font-mono font-black text-navy-700 dark:text-navy-300 text-base">
-                {formatMoney(totals.grandTotal)}
+                {formatMoney(totals.grandTotal, currency)}
               </span>
             </div>
           </div>
 
-          {/* Notlar ve Şartlar */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Özel Notlar</label>
+          {/* Notlar ve Şartlar & Koşullar */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-foreground">Özel Notlar</label>
+                <span className="text-[10px] text-muted-foreground font-medium">Müşteriye teklifte iletilir</span>
+              </div>
               <textarea
-                rows={2}
+                rows={5}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Müşteriye iletilecek özel notlar..."
-                className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs"
+                placeholder="Örn: Kurulum ve devreye alma tarihi, özel teslimat koşulları..."
+                className="w-full min-h-[120px] p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-background text-xs leading-relaxed focus:ring-2 focus:ring-navy-600 focus:border-transparent resize-y"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-foreground">Şartlar & Koşullar</label>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <span>Şartlar & Koşullar</span>
+                  <span className="text-[10px] font-normal text-muted-foreground">(PDF Teklife Basılır)</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTerms(
+                      '1. Teklif 30 gün süreyle geçerlidir.\n2. Fiyatlarımıza KDV dahildir.\n3. Kurulum ve devreye alma Dream Telecom uzman ekiplerince yapılacaktır.\n4. Tüm ürünler 2 yıl resmi garanti kapsamındadır.',
+                    )
+                  }
+                  className="text-[10px] font-bold text-navy-700 dark:text-navy-300 hover:underline cursor-pointer"
+                  title="Varsayılan standart maddeleri yükle"
+                >
+                  + Standart Şartları Doldur
+                </button>
+              </div>
               <textarea
-                rows={2}
+                rows={5}
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
-                placeholder="Teslimat, garanti ve ödeme vadeleri..."
-                className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs"
+                placeholder="1. Teklif 30 gün süreyle geçerlidir...&#10;2. Fiyatlarımıza KDV dahildir...&#10;3. Ödeme vadesi teslimatta peşindir..."
+                className="w-full min-h-[120px] p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-background text-xs leading-relaxed focus:ring-2 focus:ring-navy-600 focus:border-transparent font-sans resize-y"
               />
             </div>
           </div>

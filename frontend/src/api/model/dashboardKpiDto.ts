@@ -7,18 +7,28 @@
  */
 
 export interface DashboardKpiDto {
-  /** Toplam Onaylanmış / Gerçekleşen Ciro */
+  /** Toplam Onaylanmış / Gerçekleşen Ciro (TRY) */
   totalRevenue: string;
-  /** Bu Ay Gerçekleşen Satış Cirosu */
+  /** Toplam Onaylanmış / Gerçekleşen Ciro (USD) */
+  totalRevenueUsd: string;
+  /** Bu Ay Gerçekleşen Satış Cirosu (TRY) */
   thisMonthSalesAmount: string;
+  /** Bu Ay Gerçekleşen Satış Cirosu (USD) */
+  thisMonthSalesAmountUsd: string;
   /** Bu Ay Yapılan Satış Adedi */
   thisMonthSalesCount: number;
   /** Açık Teklif Tutarı (SENT & DRAFT) */
   openQuotesAmount: string;
+  /** Açık Teklif Tutarı (USD) */
+  openQuotesAmountUsd: string;
+  /** TCMB USD/TRY Güncel Kuru */
+  usdRate: string;
   /** Teklif Onay Oranı */
   quoteApprovalRate: string;
   /** Faturası Bekleyen Satışların Tutarı */
   pendingInvoiceSalesAmount: string;
+  /** Faturası Bekleyen Satışların Tutarı (USD) */
+  pendingInvoiceSalesAmountUsd: string;
   /** Faturası Bekleyen Satış Adedi */
   pendingInvoiceSalesCount: number;
   /** Lead Müşteriye Dönüşüm Oranı */

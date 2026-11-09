@@ -22,14 +22,14 @@ export class InteractionsService {
       if (customerId) {
         const customer = await this.prisma.customer.findUnique({ where: { id: customerId } });
         if (!customer) throw new NotFoundException('Müşteri bulunamadı.');
-        if (customer.createdById !== user.id && customer.assignedToId !== user.id) {
+        if (customer.assignedToId !== user.id) {
           throw new ForbiddenException('Bu müşteriye görüşme ekleme yetkiniz yok.');
         }
       }
       if (leadId) {
         const lead = await this.prisma.lead.findUnique({ where: { id: leadId } });
         if (!lead) throw new NotFoundException('Lead bulunamadı.');
-        if (lead.createdById !== user.id && lead.assignedToId !== user.id) {
+        if (lead.assignedToId !== user.id) {
           throw new ForbiddenException('Bu leade görüşme ekleme yetkiniz yok.');
         }
       }

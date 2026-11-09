@@ -21,6 +21,7 @@ export class UsersService {
       data: {
         email: dto.email,
         fullName: dto.fullName,
+        phone: dto.phone || null,
         passwordHash,
         role: dto.role || Role.SALES_REP,
       },
@@ -28,6 +29,7 @@ export class UsersService {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -42,6 +44,7 @@ export class UsersService {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -57,6 +60,7 @@ export class UsersService {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,
@@ -69,7 +73,16 @@ export class UsersService {
   }
 
   async update(id: string, dto: UpdateUserDto) {
-    await this.findOne(id);
+    const existingUser = await this.findOne(id);
+
+    if (dto.email && dto.email !== existingUser.email) {
+      const emailTaken = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (emailTaken) {
+        throw new ConflictException('Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.');
+      }
+    }
 
     const data: any = { ...dto };
     if (dto.password) {
@@ -84,6 +97,7 @@ export class UsersService {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,

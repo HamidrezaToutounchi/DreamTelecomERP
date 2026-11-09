@@ -34,8 +34,8 @@ export class SalesService {
       throw new NotFoundException('Müşteri bulunamadı.');
     }
 
-    if (user.role === Role.SALES_REP && customer.createdById !== user.id && customer.assignedToId !== user.id) {
-      throw new ForbiddenException('Bu müşteri için satış kaydı oluşturma yetkiniz yok.');
+    if (user.role === Role.SALES_REP && customer.assignedToId !== user.id) {
+      throw new ForbiddenException('Bu müşteri sizin portföyünüzde bulunmamaktadır.');
     }
 
     // If quoteId is provided, verify it and prevent duplicate conversion
@@ -124,6 +124,10 @@ export class SalesService {
       where.paymentStatus = query.paymentStatus;
     }
 
+    if (query.companyId) {
+      where.quote = { companyId: query.companyId };
+    }
+
     if (query.dateFrom || query.dateTo) {
       where.createdAt = {};
       if (query.dateFrom) where.createdAt.gte = new Date(query.dateFrom);
@@ -153,7 +157,14 @@ export class SalesService {
         include: {
           customer: { select: { id: true, companyName: true, taxNumber: true } },
           rep: { select: { id: true, fullName: true, email: true } },
-          quote: { select: { id: true, quoteNumber: true, grandTotal: true } },
+          quote: {
+            select: {
+              id: true,
+              quoteNumber: true,
+              grandTotal: true,
+              company: { select: { id: true, name: true, code: true } },
+            },
+          },
         },
       }),
     ]);

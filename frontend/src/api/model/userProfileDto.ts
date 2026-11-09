@@ -5,12 +5,14 @@
  * Dream Telecom Satış & Dağıtım Yönetim Sistemi (SDYS) kurumsal RESTful API ve Socket.io altyapısı. Frontend Orval React Query kod üretimi için OpenAPI 3.0 standardına tam uyumludur.
  * OpenAPI spec version: 1.0.0
  */
+import type { UserProfileDtoPhone } from './userProfileDtoPhone';
 import type { UserProfileDtoRole } from './userProfileDtoRole';
 
 export interface UserProfileDto {
   id: string;
   email: string;
   fullName: string;
+  phone?: UserProfileDtoPhone;
   role: UserProfileDtoRole;
   isActive: boolean;
   createdAt: string;

@@ -9,6 +9,7 @@ import type { DashboardKpiDto } from './dashboardKpiDto';
 import type { SalesByRepItemDto } from './salesByRepItemDto';
 import type { SalesByCategoryItemDto } from './salesByCategoryItemDto';
 import type { QuotesByRepItemDto } from './quotesByRepItemDto';
+import type { QuotesByCompanyItemDto } from './quotesByCompanyItemDto';
 
 export interface DashboardSummaryResponseDto {
   kpis: DashboardKpiDto;
@@ -18,4 +19,6 @@ export interface DashboardSummaryResponseDto {
   salesByCategory: SalesByCategoryItemDto[];
   /** Grafik: Temsilci Bazlı Teklif Sayıları ve Durum Dağılımı */
   quotesByRep: QuotesByRepItemDto[];
+  /** Şirket Bazlı Teklif Dağılımı (Dream vs Tescom) */
+  quotesByCompany: QuotesByCompanyItemDto[];
 }

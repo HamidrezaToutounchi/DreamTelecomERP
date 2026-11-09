@@ -68,6 +68,7 @@ model User {
   email             String       @unique
   passwordHash      String
   fullName          String
+  phone             String?
   role              Role         @default(SALES_REP)
   isActive          Boolean      @default(true)
   createdAt         DateTime     @default(now())
@@ -186,9 +187,34 @@ model Product {
   @@map("products")
 }
 
+model Company {
+  id              String   @id @default(uuid())
+  code            String   @unique // DREAM, TESCOM
+  name            String   // Dream Telecom, Tescom Telecom
+  title           String   // Resmi Ticari Ünvan
+  address         String   @db.Text
+  phone           String
+  fax             String?
+  email           String   @db.Text
+  website         String?
+  taxOffice       String?
+  taxNumber       String?
+  bankInfo        String?  @db.Text
+  logoUrl         String?
+  primaryColor    String   @default("#004A93")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  quotes          Quote[]
+
+  @@map("companies")
+}
+
 model Quote {
   id              String       @id @default(uuid())
   quoteNumber     String       @unique
+  companyId       String?
+  company         Company?     @relation(fields: [companyId], references: [id])
   customerId      String
   customer        Customer     @relation(fields: [customerId], references: [id])
   repId           String

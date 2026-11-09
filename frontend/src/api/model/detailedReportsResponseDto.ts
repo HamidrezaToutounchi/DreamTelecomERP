@@ -9,10 +9,13 @@ import type { DetailedReportsResponseDtoPeriod } from './detailedReportsResponse
 import type { DetailedReportsResponseDtoSalesMetrics } from './detailedReportsResponseDtoSalesMetrics';
 import type { DetailedReportsResponseDtoQuoteMetrics } from './detailedReportsResponseDtoQuoteMetrics';
 import type { DetailedReportsResponseDtoLeadMetrics } from './detailedReportsResponseDtoLeadMetrics';
+import type { QuotesByCompanyItemDto } from './quotesByCompanyItemDto';
 
 export interface DetailedReportsResponseDto {
   period: DetailedReportsResponseDtoPeriod;
   salesMetrics: DetailedReportsResponseDtoSalesMetrics;
   quoteMetrics: DetailedReportsResponseDtoQuoteMetrics;
   leadMetrics: DetailedReportsResponseDtoLeadMetrics;
+  /** Şirket Dağılımı (Dream Telecom vs Tescom Telecom) */
+  quotesByCompany: QuotesByCompanyItemDto[];
 }
