@@ -1,0 +1,4452 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/audit-logs": {
+      "get": {
+        "description": "Sistemdeki tüm ekleme, güncelleme, atama, satış, giriş ve silme hareketlerini filtreleyerek listeler.",
+        "operationId": "AuditLogsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Kullanıcı ID filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "description": "İşlem türü filtresi (CREATE, UPDATE, DELETE, REASSIGN, CONVERT, LOGIN vb.)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entity",
+            "required": false,
+            "in": "query",
+            "description": "Varlık filtresi (LEAD, CUSTOMER, QUOTE, SALE, PRODUCT, USER, AUTH)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedAuditLogResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kullanıcı işlem ve aktivite loglarını getir (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Audit Logs"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Başarılı giriş ve JWT token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Geçersiz kimlik bilgileri"
+          }
+        },
+        "summary": "Kullanıcı Girişi (E-posta ve Parola)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Kullanıcı profili",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Giriş yapan kullanıcının profil bilgilerini getirir",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni kullanıcı oluştur (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "SALES_REP",
+                "SALES_MANAGER"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kullanıcıları listele (Temsilciler veya Yöneticiler)",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kullanıcı detayını getir",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kullanıcı bilgilerini güncelle (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/leads": {
+      "post": {
+        "operationId": "LeadsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni potansiyel müşteri (Lead) oluştur",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "get": {
+        "description": "SALES_REP sadece kendine ait/atanmış leadleri görür, SALES_MANAGER tüm leadleri görür.",
+        "operationId": "LeadsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedLeadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lead listesini getir (TanStack Table v8 server-side filtreleme ve sayfalama destekli)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/v1/leads/excel-template": {
+      "get": {
+        "operationId": "LeadsController_downloadExcelTemplate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Örnek Excel şablon dosyası"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Excel toplu lead yükleme taslağını (.xlsx) indir",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/v1/leads/{id}": {
+      "get": {
+        "operationId": "LeadsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lead detayını getir",
+        "tags": [
+          "Leads"
+        ]
+      },
+      "patch": {
+        "operationId": "LeadsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lead bilgilerini ve durumunu güncelle",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/v1/leads/{id}/quick-action": {
+      "post": {
+        "operationId": "LeadsController_quickAction",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuickActionLeadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lead için Hızlı İşlem Kaydet (Durum günceller, not ve timeline kaydı oluşturur)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/v1/leads/import-excel": {
+      "post": {
+        "description": "ROUND_ROBIN (eşit sırayla dağıt) veya MANUAL_SPLIT (özel kotalarla dağıt). Atanan temsilcilere anında socket.io üzerinden new_leads_assigned bildirimi gider.",
+        "operationId": "LeadsController_importExcel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Yüklenecek .xlsx Excel dosyası (Sütunlar: Firma, Yetkili, Telefon, E-posta, Kaynak, Not)"
+                  },
+                  "strategy": {
+                    "type": "string",
+                    "enum": [
+                      "ROUND_ROBIN",
+                      "MANUAL_SPLIT"
+                    ],
+                    "default": "ROUND_ROBIN"
+                  },
+                  "repIds": {
+                    "type": "string",
+                    "description": "ROUND_ROBIN için temsilci ID listesi (Virgülle ayrılmış veya JSON array: [\"uuid1\",\"uuid2\"])"
+                  },
+                  "manualSplit": {
+                    "type": "string",
+                    "description": "MANUAL_SPLIT için kota JSON string formatı: [{\"repId\":\"uuid\",\"count\":10}]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportExcelResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Excel ile toplu Lead yükle ve temsilcilere dağıt (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Leads"
+        ]
+      }
+    },
+    "/api/v1/customers": {
+      "post": {
+        "operationId": "CustomersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Müşteri oluştur veya Leadi Müşteriye dönüştür",
+        "tags": [
+          "Customers"
+        ]
+      },
+      "get": {
+        "description": "SALES_REP sadece kendine ait/atanmış müşterileri görür, SALES_MANAGER tüm müşterileri görür.",
+        "operationId": "CustomersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerType",
+            "required": false,
+            "in": "query",
+            "description": "Müşteri tipi filtresi",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CORPORATE",
+                "INDIVIDUAL",
+                "DEALER"
+              ]
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "Kategori ID filtresi",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedCustomerResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Müşterileri listele (TanStack Table v8 server-side filtreleme ve sayfalama)",
+        "tags": [
+          "Customers"
+        ]
+      }
+    },
+    "/api/v1/customers/{id}": {
+      "get": {
+        "operationId": "CustomersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Müşteri detayını ilişkili teklifler, satışlar ve görüşmelerle getir",
+        "tags": [
+          "Customers"
+        ]
+      },
+      "patch": {
+        "operationId": "CustomersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Müşteri bilgilerini güncelle",
+        "tags": [
+          "Customers"
+        ]
+      }
+    },
+    "/api/v1/interactions": {
+      "post": {
+        "operationId": "InteractionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInteractionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Görüşme/Etkileşim Kaydı Ekle (Müşteri veya Lead ile temas)",
+        "tags": [
+          "Interactions"
+        ]
+      },
+      "get": {
+        "operationId": "InteractionsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "description": "Müşteri ID filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leadId",
+            "required": false,
+            "in": "query",
+            "description": "Lead ID filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interactionType",
+            "required": false,
+            "in": "query",
+            "description": "Etkileşim türü filtresi",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PHONE_CALL",
+                "IN_PERSON_MEETING",
+                "ONLINE_MEETING",
+                "EMAIL",
+                "WHATSAPP",
+                "NOTE"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedInteractionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Görüşme kayıtlarını listele (TanStack Table v8 server-side filtreleme ve sayfalama)",
+        "tags": [
+          "Interactions"
+        ]
+      }
+    },
+    "/api/v1/interactions/upcoming-followups": {
+      "get": {
+        "operationId": "InteractionsController_getUpcomingFollowUps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yaklaşan ve geciken sonraki takip / arama bildirimlerini getirir",
+        "tags": [
+          "Interactions"
+        ]
+      }
+    },
+    "/api/v1/interactions/{id}": {
+      "get": {
+        "operationId": "InteractionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Görüşme kaydı detayını getir",
+        "tags": [
+          "Interactions"
+        ]
+      },
+      "patch": {
+        "operationId": "InteractionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInteractionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InteractionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Görüşme kaydını güncelle",
+        "tags": [
+          "Interactions"
+        ]
+      }
+    },
+    "/api/v1/quotes": {
+      "post": {
+        "operationId": "QuotesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Teklif oluştur (Kalemleri ve otomatik hesaplanan toplamları ile)",
+        "tags": [
+          "Quotes"
+        ]
+      },
+      "get": {
+        "description": "SALES_REP sadece kendi tekliflerini görür, SALES_MANAGER tüm teklifleri görür.",
+        "operationId": "QuotesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedQuoteResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teklifleri listele (TanStack Table v8 server-side filtreleme ve sayfalama)",
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/api/v1/quotes/{id}": {
+      "get": {
+        "operationId": "QuotesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teklif detayını getir (Kalemler, müşteri, revizyon geçmişi ile)",
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/api/v1/quotes/{id}/status": {
+      "patch": {
+        "operationId": "QuotesController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateQuoteStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teklif durumunu güncelle (SENT, APPROVED, REJECTED)",
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/api/v1/quotes/{id}/revise": {
+      "post": {
+        "operationId": "QuotesController_revise",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviseQuoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teklifi revize et (Eski teklifi REVISED yapar, yeni versiyon kopyasını DRAFT olarak oluşturur)",
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/api/v1/quotes/{id}/pdf": {
+      "get": {
+        "description": "Kurumsal mavi (#004A93), ürün kalemleri, fiyatlar ve toplamları içeren resmi teklif PDFi.",
+        "operationId": "QuotesController_getPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF binary stream",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Dream Telecom kurumsal teklif PDF dosyasını indir/stream et",
+        "tags": [
+          "Quotes"
+        ]
+      }
+    },
+    "/api/v1/sales": {
+      "post": {
+        "operationId": "SalesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSaleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Satış / Sipariş Kaydı Oluştur",
+        "tags": [
+          "Sales"
+        ]
+      },
+      "get": {
+        "description": "SALES_REP sadece kendi satışlarını görür, SALES_MANAGER tüm satışları görür.",
+        "operationId": "SalesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isInvoiced",
+            "required": false,
+            "in": "query",
+            "description": "Fatura kesildi mi filtresi",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "paymentStatus",
+            "required": false,
+            "in": "query",
+            "description": "Ödeme durumu",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PARTIAL",
+                "PAID"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSaleResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Satışları listele (TanStack Table v8 server-side filtreleme ve sayfalama)",
+        "tags": [
+          "Sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}": {
+      "get": {
+        "operationId": "SalesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Satış detayını getir",
+        "tags": [
+          "Sales"
+        ]
+      },
+      "patch": {
+        "operationId": "SalesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSaleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Satış veya Fatura bilgilerini güncelle",
+        "tags": [
+          "Sales"
+        ]
+      }
+    },
+    "/api/v1/analytics/dashboard-summary": {
+      "get": {
+        "description": "Temsilci bazlı satış tutarları, teklif dağılımları, toplam ciro, onay oranı ve dönüşüm metrikleri.",
+        "operationId": "AnalyticsController_getDashboardSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardSummaryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Satış Müdürü Dashboard Özeti (KPI Kartları & Pasta Grafikler)",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/detailed-reports": {
+      "get": {
+        "description": "Tarih aralığı, temsilci, teklif durumu, fatura durumu ve lead kaynağına göre filtrelenebilir metrikler.",
+        "operationId": "AnalyticsController_getDetailedReports",
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quoteStatus",
+            "required": false,
+            "in": "query",
+            "description": "Teklif durumu",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "SENT",
+                "APPROVED",
+                "REJECTED",
+                "REVISED"
+              ]
+            }
+          },
+          {
+            "name": "isInvoiced",
+            "required": false,
+            "in": "query",
+            "description": "Fatura durumu (true/false)",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "leadSource",
+            "required": false,
+            "in": "query",
+            "description": "Lead kaynağı (Web, Excel, Referans vb.)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedReportsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Filtrelenebilir Detaylı Performans Raporları",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/uploads/product-image": {
+      "post": {
+        "operationId": "UploadsController_uploadProductImage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Yüklenen ürün fotoğrafı dosya yolu ve URLi"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Teklif kalemi için ürün fotoğrafı yükle",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/api/v1/customer-categories": {
+      "post": {
+        "operationId": "CategoriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCategoryDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Müşteri Kategorisi Ekle (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Categories"
+        ]
+      },
+      "get": {
+        "operationId": "CategoriesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerCategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tüm Müşteri Kategorilerini Listele",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/api/v1/customer-categories/{id}": {
+      "delete": {
+        "operationId": "CategoriesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Müşteri Kategorisini Sil (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Categories"
+        ]
+      }
+    },
+    "/api/v1/products": {
+      "post": {
+        "operationId": "ProductsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni ürün veya hizmet tanımla (Mükerrer kontrolü ile)",
+        "tags": [
+          "Products"
+        ]
+      },
+      "get": {
+        "operationId": "ProductsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa numarası (1 tabanlı)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Sayfa başına satır sayısı",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama alanı (örn: createdAt, companyName)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sıralama yönü",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama kelimesi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Durum filtresi",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repId",
+            "required": false,
+            "in": "query",
+            "description": "Satış temsilcisi ID filtresi (Sadece SALES_MANAGER kullanabilir)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "Başlangıç tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "Bitiş tarihi filtresi (ISO string)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Ürün Türüne Göre Filtrele",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PHYSICAL",
+                "SOFTWARE",
+                "SERVICE"
+              ]
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Marka Filtresi",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedProductResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürün ve hizmet kataloğunu listele",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/api/v1/products/sales-report": {
+      "get": {
+        "operationId": "ProductsController_getProductSalesSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductSalesStatDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürün ve hizmet bazlı satış raporu (Adet, ciro ve işlem sayısı)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/api/v1/products/{id}": {
+      "get": {
+        "operationId": "ProductsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürün veya hizmet detayını getir",
+        "tags": [
+          "Products"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürün veya hizmet bilgilerini güncelle (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Products"
+        ]
+      },
+      "delete": {
+        "operationId": "ProductsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürünü katalogdan kaldır / pasife al (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Products"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Dream Telecom - SDYS CRM Backend API",
+    "description": "Dream Telecom Satış & Dağıtım Yönetim Sistemi (SDYS) kurumsal RESTful API ve Socket.io altyapısı. Frontend Orval React Query kod üretimi için OpenAPI 3.0 standardına tam uyumludur.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Kimlik doğrulama ve kullanıcı profili"
+    },
+    {
+      "name": "Users",
+      "description": "Kullanıcı ve satış temsilcisi yönetimi"
+    },
+    {
+      "name": "Leads",
+      "description": "Potansiyel müşteri, Excel import ve temsilcilere dağıtım"
+    },
+    {
+      "name": "Customers",
+      "description": "Müşteri yönetimi ve leadden dönüşüm"
+    },
+    {
+      "name": "Interactions",
+      "description": "Müşteri & Lead temas ve görüşme geçmişi"
+    },
+    {
+      "name": "Quotes",
+      "description": "Teklif hazırlama, revizyon versiyonlama ve PDF çıktısı"
+    },
+    {
+      "name": "Sales",
+      "description": "Satış ve fatura takip işlemleri"
+    },
+    {
+      "name": "Analytics",
+      "description": "Satış müdürü dashboard özetleri ve detaylı raporlar"
+    },
+    {
+      "name": "Uploads",
+      "description": "Ürün fotoğrafları ve dosya yükleme"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "JWT Erişim Belirteci (Örn: Bearer <token>)"
+      }
+    },
+    "schemas": {
+      "AuditLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "object"
+          },
+          "userName": {
+            "type": "object"
+          },
+          "userEmail": {
+            "type": "object"
+          },
+          "userRole": {
+            "type": "string",
+            "enum": [
+              "SALES_REP",
+              "SALES_MANAGER"
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "object"
+          },
+          "details": {
+            "type": "object"
+          },
+          "ipAddress": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "entity",
+          "createdAt"
+        ]
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "totalRowCount": {
+            "type": "number",
+            "example": 45,
+            "description": "Toplam kayıt sayısı"
+          },
+          "page": {
+            "type": "number",
+            "example": 1,
+            "description": "Mevcut sayfa numarası"
+          },
+          "pageSize": {
+            "type": "number",
+            "example": 10,
+            "description": "Sayfa başına düşen kayıt sayısı"
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 5,
+            "description": "Toplam sayfa sayısı"
+          }
+        },
+        "required": [
+          "totalRowCount",
+          "page",
+          "pageSize",
+          "totalPages"
+        ]
+      },
+      "PaginatedAuditLogResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "manager@dreamtelecom.com",
+            "description": "Kullanıcı e-posta adresi"
+          },
+          "password": {
+            "type": "string",
+            "example": "Dream123!",
+            "description": "Kullanıcı parolası"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "f87a8b65-684d-4e94-8255-7d515a5fbc40"
+          },
+          "email": {
+            "type": "string",
+            "example": "manager@dreamtelecom.com"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SALES_REP",
+              "SALES_MANAGER"
+            ],
+            "example": "SALES_MANAGER"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "role",
+          "isActive",
+          "createdAt"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT Erişim Belirteci"
+          },
+          "user": {
+            "description": "Giriş yapan kullanıcı bilgileri",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserProfileDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "ahmet@dreamtelecom.com"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "password": {
+            "type": "string",
+            "example": "Dream123!"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SALES_REP",
+              "SALES_MANAGER"
+            ],
+            "default": "SALES_REP"
+          }
+        },
+        "required": [
+          "email",
+          "fullName",
+          "password",
+          "role"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SALES_REP",
+              "SALES_MANAGER"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "role",
+          "isActive",
+          "createdAt"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "password": {
+            "type": "string",
+            "example": "NewSecret123!"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SALES_REP",
+              "SALES_MANAGER"
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateLeadDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "example": "Arçelik A.Ş."
+          },
+          "contactName": {
+            "type": "string",
+            "example": "Mehmet Demir"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0532 111 22 33"
+          },
+          "email": {
+            "type": "string",
+            "example": "mehmet@arcelik.com"
+          },
+          "source": {
+            "type": "string",
+            "example": "Web Form",
+            "default": "Web"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "CALLED_NO_ANSWER",
+              "CALLED_REACHED",
+              "MEETING_SCHEDULED",
+              "MEETING_DONE",
+              "CONVERTED",
+              "LOST"
+            ],
+            "default": "NEW"
+          },
+          "assignedToId": {
+            "type": "string",
+            "description": "Atanacak Temsilci ID (Yalnızca Manager atayabilir veya otomatik atanır)"
+          },
+          "notes": {
+            "type": "string",
+            "example": "İnternet altyapısı ve fiber hat talebi var."
+          }
+        },
+        "required": [
+          "companyName",
+          "contactName",
+          "phone"
+        ]
+      },
+      "LeadDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "object"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "CALLED_NO_ANSWER",
+              "CALLED_REACHED",
+              "MEETING_SCHEDULED",
+              "MEETING_DONE",
+              "CONVERTED",
+              "LOST"
+            ]
+          },
+          "assignedToId": {
+            "type": "object"
+          },
+          "assignedTo": {
+            "type": "object",
+            "description": "Atanan satış temsilcisi bilgileri"
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "object",
+            "description": "Oluşturan kullanıcı bilgileri"
+          },
+          "lastActionAt": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "object"
+          },
+          "interactions": {
+            "description": "Görüşme ve işlem geçmişi zaman tüneli",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "companyName",
+          "contactName",
+          "phone",
+          "source",
+          "status",
+          "createdById",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedLeadResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeadDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateLeadDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "example": "Arçelik A.Ş."
+          },
+          "contactName": {
+            "type": "string",
+            "example": "Mehmet Demir"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0532 111 22 33"
+          },
+          "email": {
+            "type": "string",
+            "example": "mehmet@arcelik.com"
+          },
+          "source": {
+            "type": "string",
+            "example": "Web Form"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "CALLED_NO_ANSWER",
+              "CALLED_REACHED",
+              "MEETING_SCHEDULED",
+              "MEETING_DONE",
+              "CONVERTED",
+              "LOST"
+            ]
+          },
+          "assignedToId": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "QuickActionLeadDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "CALLED_NO_ANSWER",
+              "CALLED_REACHED",
+              "MEETING_SCHEDULED",
+              "MEETING_DONE",
+              "CONVERTED",
+              "LOST"
+            ],
+            "example": "CALLED_REACHED"
+          },
+          "summary": {
+            "type": "string",
+            "example": "Müşteriyle telefonla görüşüldü, fiber hat için teklif istendi."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHONE_CALL",
+              "IN_PERSON_MEETING",
+              "ONLINE_MEETING",
+              "EMAIL",
+              "WHATSAPP",
+              "NOTE"
+            ],
+            "default": "PHONE_CALL"
+          },
+          "nextFollowUpDate": {
+            "type": "string",
+            "example": "2026-11-20T15:00:00.000Z"
+          }
+        },
+        "required": [
+          "status",
+          "summary"
+        ]
+      },
+      "ImportExcelResultDto": {
+        "type": "object",
+        "properties": {
+          "totalImported": {
+            "type": "number",
+            "example": 50
+          },
+          "distributionSummary": {
+            "type": "object",
+            "example": {
+              "rep-uuid-1": 25,
+              "rep-uuid-2": 25
+            }
+          }
+        },
+        "required": [
+          "totalImported",
+          "distributionSummary"
+        ]
+      },
+      "CreateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CORPORATE",
+              "INDIVIDUAL",
+              "DEALER"
+            ],
+            "default": "CORPORATE"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Müşteri Kategori ID (Zorunlu)"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Turkcell İletişim Hizmetleri A.Ş. veya Ahmet Yılmaz"
+          },
+          "taxNumber": {
+            "type": "string",
+            "example": "8790012345"
+          },
+          "taxOffice": {
+            "type": "string",
+            "example": "Büyük Mükellefler"
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Ayşe Kaya"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0212 313 10 00"
+          },
+          "email": {
+            "type": "string",
+            "example": "info@turkcell.com.tr"
+          },
+          "address": {
+            "type": "string",
+            "example": "Aydınevler Mah. İnönü Cad. No:20 Maltepe/İstanbul",
+            "description": "Müşteri açık adresi (Zorunlu)"
+          },
+          "leadId": {
+            "type": "string",
+            "description": "Eğer bir lead müşteriye dönüştürülüyorsa o leadin IDsi"
+          },
+          "assignedToId": {
+            "type": "string",
+            "description": "Atanacak Temsilci ID (Yalnızca Manager değiştirebilir)"
+          }
+        },
+        "required": [
+          "categoryId",
+          "companyName",
+          "contactPerson",
+          "phone",
+          "address"
+        ]
+      },
+      "CustomerCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "color": {
+            "type": "string"
+          },
+          "_count": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "color",
+          "createdAt"
+        ]
+      },
+      "CustomerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CORPORATE",
+              "INDIVIDUAL",
+              "DEALER"
+            ]
+          },
+          "categoryId": {
+            "type": "object"
+          },
+          "category": {
+            "$ref": "#/components/schemas/CustomerCategoryDto"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "object"
+          },
+          "taxOffice": {
+            "type": "object"
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "object"
+          },
+          "address": {
+            "type": "object"
+          },
+          "leadId": {
+            "type": "object"
+          },
+          "assignedToId": {
+            "type": "string"
+          },
+          "assignedTo": {
+            "type": "object"
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "object"
+          },
+          "interactions": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "quotes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "sales": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "companyName",
+          "contactPerson",
+          "phone",
+          "assignedToId",
+          "createdById",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedCustomerResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CORPORATE",
+              "INDIVIDUAL",
+              "DEALER"
+            ]
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Turkcell İletişim Hizmetleri A.Ş."
+          },
+          "taxNumber": {
+            "type": "string",
+            "example": "8790012345"
+          },
+          "taxOffice": {
+            "type": "string",
+            "example": "Büyük Mükellefler"
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Ayşe Kaya"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0212 313 10 00"
+          },
+          "email": {
+            "type": "string",
+            "example": "info@turkcell.com.tr"
+          },
+          "address": {
+            "type": "string",
+            "example": "Aydınevler Mah. İnönü Cad. No:20 Maltepe/İstanbul"
+          },
+          "assignedToId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateInteractionDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "description": "İlişkili Müşteri ID (veya leadId verilmelidir)"
+          },
+          "leadId": {
+            "type": "string",
+            "description": "İlişkili Lead ID (veya customerId verilmelidir)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHONE_CALL",
+              "IN_PERSON_MEETING",
+              "ONLINE_MEETING",
+              "EMAIL",
+              "WHATSAPP",
+              "NOTE"
+            ],
+            "example": "PHONE_CALL"
+          },
+          "contactedPerson": {
+            "type": "string",
+            "example": "Ayşe Kaya (Satınalma Müdürü)"
+          },
+          "summary": {
+            "type": "string",
+            "example": "Fiber altyapı ve Metro Ethernet fiyat teklifi istediler. 500 Mbps hız seçeneği sunuldu."
+          },
+          "nextFollowUpDate": {
+            "type": "string",
+            "example": "2026-11-15T10:00:00.000Z",
+            "description": "Bir sonraki takip/arama tarihi"
+          }
+        },
+        "required": [
+          "type",
+          "contactedPerson",
+          "summary"
+        ]
+      },
+      "InteractionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "object"
+          },
+          "customer": {
+            "type": "object"
+          },
+          "leadId": {
+            "type": "object"
+          },
+          "lead": {
+            "type": "object"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHONE_CALL",
+              "IN_PERSON_MEETING",
+              "ONLINE_MEETING",
+              "EMAIL",
+              "WHATSAPP",
+              "NOTE"
+            ]
+          },
+          "contactedPerson": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "nextFollowUpDate": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "type",
+          "contactedPerson",
+          "summary",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedInteractionResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InteractionDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateInteractionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHONE_CALL",
+              "IN_PERSON_MEETING",
+              "ONLINE_MEETING",
+              "EMAIL",
+              "WHATSAPP",
+              "NOTE"
+            ]
+          },
+          "contactedPerson": {
+            "type": "string",
+            "example": "Ayşe Kaya"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "nextFollowUpDate": {
+            "type": "string",
+            "example": "2026-11-15T10:00:00.000Z"
+          }
+        }
+      },
+      "CreateQuoteItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "description": "Katalog Ürün ID (Opsiyonel)"
+          },
+          "productName": {
+            "type": "string",
+            "example": "DreamFiber Kurumsal Router 10G"
+          },
+          "productCode": {
+            "type": "string",
+            "example": "RTR-10G-SFP-01"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Dream Telecom"
+          },
+          "model": {
+            "type": "string",
+            "example": "DF-10G-PRO"
+          },
+          "description": {
+            "type": "string",
+            "example": "10 Gbps SFP+ Uplink portlu yüksek performanslı yönlendirici"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "/uploads/products/router.png",
+            "description": "Ürün fotoğrafı URLi"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2,
+            "default": 1
+          },
+          "unitPrice": {
+            "type": "string",
+            "example": "14500.00",
+            "description": "Birim fiyat (string para formatı)"
+          },
+          "discountRate": {
+            "type": "string",
+            "example": "10.00",
+            "default": "0.00",
+            "description": "İskonto oranı %"
+          },
+          "taxRate": {
+            "type": "number",
+            "example": 20,
+            "default": 20,
+            "description": "KDV oranı %"
+          }
+        },
+        "required": [
+          "productName",
+          "productCode",
+          "quantity",
+          "unitPrice"
+        ]
+      },
+      "CreateQuoteDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "description": "Müşteri ID"
+          },
+          "validUntil": {
+            "type": "string",
+            "example": "2026-12-31T23:59:59.000Z",
+            "description": "Teklif geçerlilik tarihi"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "default": "TRY"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Fiyatlarımıza KDV dahildir/hariçtir, teslimat 3 iş günüdür."
+          },
+          "terms": {
+            "type": "string",
+            "example": "Ödeme vadesi 30 gündür. Kurulum ve devreye alma dahildir."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateQuoteItemDto"
+            }
+          }
+        },
+        "required": [
+          "customerId",
+          "items"
+        ]
+      },
+      "QuoteItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "object"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productCode": {
+            "type": "string",
+            "description": "Monospace kod"
+          },
+          "brand": {
+            "type": "object"
+          },
+          "model": {
+            "type": "object"
+          },
+          "description": {
+            "type": "object"
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unitPrice": {
+            "type": "string",
+            "example": "14500.00"
+          },
+          "discountRate": {
+            "type": "string",
+            "example": "10.00"
+          },
+          "taxRate": {
+            "type": "number",
+            "example": 20
+          },
+          "lineTotal": {
+            "type": "string",
+            "example": "26100.00"
+          }
+        },
+        "required": [
+          "id",
+          "productName",
+          "productCode",
+          "quantity",
+          "unitPrice",
+          "discountRate",
+          "taxRate",
+          "lineTotal"
+        ]
+      },
+      "QuoteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteNumber": {
+            "type": "string",
+            "example": "DT-2026-0001",
+            "description": "Monospace teklif numarası"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object"
+          },
+          "repId": {
+            "type": "string"
+          },
+          "rep": {
+            "type": "object"
+          },
+          "version": {
+            "type": "number",
+            "example": 1
+          },
+          "parentQuoteId": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SENT",
+              "APPROVED",
+              "REJECTED",
+              "REVISED"
+            ]
+          },
+          "rejectionReason": {
+            "type": "object"
+          },
+          "validUntil": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ]
+          },
+          "subTotal": {
+            "type": "string",
+            "example": "26100.00"
+          },
+          "taxTotal": {
+            "type": "string",
+            "example": "5220.00"
+          },
+          "grandTotal": {
+            "type": "string",
+            "example": "31320.00"
+          },
+          "notes": {
+            "type": "object"
+          },
+          "terms": {
+            "type": "object"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteItemDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "quoteNumber",
+          "customerId",
+          "repId",
+          "version",
+          "status",
+          "validUntil",
+          "currency",
+          "subTotal",
+          "taxTotal",
+          "grandTotal",
+          "items",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedQuoteResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuoteDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateQuoteStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SENT",
+              "APPROVED",
+              "REJECTED",
+              "REVISED"
+            ],
+            "example": "APPROVED"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "example": "Müşteri bütçeyi aştığını belirtti.",
+            "description": "Eğer REJECTED ise ret sebebi"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ReviseQuoteDto": {
+        "type": "object",
+        "properties": {
+          "validUntil": {
+            "type": "string",
+            "example": "2026-12-31T23:59:59.000Z"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "items": {
+            "description": "Güncellenen teklif kalemleri",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateQuoteItemDto"
+            }
+          }
+        }
+      },
+      "CreateSaleDto": {
+        "type": "object",
+        "properties": {
+          "quoteId": {
+            "type": "string",
+            "description": "Onaylı teklif ID (varsa)"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Müşteri ID"
+          },
+          "soldItemsSummary": {
+            "type": "string",
+            "example": "2x DreamFiber Kurumsal Router, 500m Fiber Optik Kablo"
+          },
+          "serialOrMacNumbers": {
+            "example": [],
+            "description": "Cihaz seri/MAC numaraları (isteğe bağlı)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "31320.00",
+            "description": "Toplam satış tutarı string"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "0.00",
+            "description": "Kısmi tahsilat durumunda alınan tutar"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "default": "TRY"
+          },
+          "isInvoiced": {
+            "type": "boolean",
+            "default": false
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "example": "GIB2026000000123"
+          },
+          "invoiceDate": {
+            "type": "string",
+            "example": "2026-11-08T00:00:00.000Z"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PARTIAL",
+              "PAID"
+            ],
+            "default": "PENDING"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId",
+          "soldItemsSummary",
+          "totalAmount"
+        ]
+      },
+      "SaleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "quoteId": {
+            "type": "object"
+          },
+          "quote": {
+            "type": "object"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object"
+          },
+          "repId": {
+            "type": "string"
+          },
+          "rep": {
+            "type": "object"
+          },
+          "soldItemsSummary": {
+            "type": "string"
+          },
+          "serialOrMacNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "31320.00"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "15000.00",
+            "description": "Tahsil edilen tutar"
+          },
+          "remainingAmount": {
+            "type": "string",
+            "example": "16320.00",
+            "description": "Kalan tahsilat bakiyesi"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ]
+          },
+          "isInvoiced": {
+            "type": "boolean"
+          },
+          "invoiceNumber": {
+            "type": "object"
+          },
+          "invoiceDate": {
+            "type": "object"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PARTIAL",
+              "PAID"
+            ]
+          },
+          "notes": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "repId",
+          "soldItemsSummary",
+          "totalAmount",
+          "paidAmount",
+          "remainingAmount",
+          "currency",
+          "isInvoiced",
+          "paymentStatus",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedSaleResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "UpdateSaleDto": {
+        "type": "object",
+        "properties": {
+          "soldItemsSummary": {
+            "type": "string",
+            "example": "2x DreamFiber Router"
+          },
+          "serialOrMacNumbers": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalAmount": {
+            "type": "string",
+            "example": "31320.00"
+          },
+          "paidAmount": {
+            "type": "string",
+            "example": "15000.00",
+            "description": "Tahsil edilen peşinat / kısmi ödeme"
+          },
+          "isInvoiced": {
+            "type": "boolean",
+            "default": true
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "example": "GIB2026000000123"
+          },
+          "invoiceDate": {
+            "type": "string",
+            "example": "2026-11-08T00:00:00.000Z"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PARTIAL",
+              "PAID"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "DashboardKpiDto": {
+        "type": "object",
+        "properties": {
+          "totalRevenue": {
+            "type": "string",
+            "example": "450000.00",
+            "description": "Toplam Onaylanmış / Gerçekleşen Ciro"
+          },
+          "thisMonthSalesAmount": {
+            "type": "string",
+            "example": "85000.00",
+            "description": "Bu Ay Gerçekleşen Satış Cirosu"
+          },
+          "thisMonthSalesCount": {
+            "type": "number",
+            "example": 4,
+            "description": "Bu Ay Yapılan Satış Adedi"
+          },
+          "openQuotesAmount": {
+            "type": "string",
+            "example": "125000.00",
+            "description": "Açık Teklif Tutarı (SENT & DRAFT)"
+          },
+          "quoteApprovalRate": {
+            "type": "string",
+            "example": "62.50%",
+            "description": "Teklif Onay Oranı"
+          },
+          "pendingInvoiceSalesAmount": {
+            "type": "string",
+            "example": "85000.00",
+            "description": "Faturası Bekleyen Satışların Tutarı"
+          },
+          "pendingInvoiceSalesCount": {
+            "type": "number",
+            "example": 4,
+            "description": "Faturası Bekleyen Satış Adedi"
+          },
+          "leadConversionRate": {
+            "type": "string",
+            "example": "31.25%",
+            "description": "Lead Müşteriye Dönüşüm Oranı"
+          }
+        },
+        "required": [
+          "totalRevenue",
+          "thisMonthSalesAmount",
+          "thisMonthSalesCount",
+          "openQuotesAmount",
+          "quoteApprovalRate",
+          "pendingInvoiceSalesAmount",
+          "pendingInvoiceSalesCount",
+          "leadConversionRate"
+        ]
+      },
+      "SalesByRepItemDto": {
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string"
+          },
+          "repName": {
+            "type": "string"
+          },
+          "totalSalesAmount": {
+            "type": "string",
+            "example": "145200.00"
+          },
+          "salesCount": {
+            "type": "number",
+            "example": 8
+          }
+        },
+        "required": [
+          "repId",
+          "repName",
+          "totalSalesAmount",
+          "salesCount"
+        ]
+      },
+      "SalesByCategoryItemDto": {
+        "type": "object",
+        "properties": {
+          "categoryName": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "totalSalesAmount": {
+            "type": "string",
+            "example": "78500.00"
+          },
+          "salesCount": {
+            "type": "number",
+            "example": 5
+          }
+        },
+        "required": [
+          "categoryName",
+          "color",
+          "totalSalesAmount",
+          "salesCount"
+        ]
+      },
+      "QuotesByRepItemDto": {
+        "type": "object",
+        "properties": {
+          "repId": {
+            "type": "string"
+          },
+          "repName": {
+            "type": "string"
+          },
+          "totalQuotesCount": {
+            "type": "number",
+            "example": 12
+          },
+          "approvedCount": {
+            "type": "number",
+            "example": 7
+          },
+          "rejectedCount": {
+            "type": "number",
+            "example": 2
+          },
+          "revisedCount": {
+            "type": "number",
+            "example": 2
+          },
+          "draftOrSentCount": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "repId",
+          "repName",
+          "totalQuotesCount",
+          "approvedCount",
+          "rejectedCount",
+          "revisedCount",
+          "draftOrSentCount"
+        ]
+      },
+      "DashboardSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "kpis": {
+            "$ref": "#/components/schemas/DashboardKpiDto"
+          },
+          "salesByRep": {
+            "description": "Pasta Grafik 1: Temsilci Bazlı Satış Tutarları",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesByRepItemDto"
+            }
+          },
+          "salesByCategory": {
+            "description": "Pasta Grafik: Kategori Bazlı Satış Dağılımı",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesByCategoryItemDto"
+            }
+          },
+          "quotesByRep": {
+            "description": "Grafik: Temsilci Bazlı Teklif Sayıları ve Durum Dağılımı",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuotesByRepItemDto"
+            }
+          }
+        },
+        "required": [
+          "kpis",
+          "salesByRep",
+          "salesByCategory",
+          "quotesByRep"
+        ]
+      },
+      "DetailedReportsResponseDto": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "object"
+          },
+          "salesMetrics": {
+            "type": "object"
+          },
+          "quoteMetrics": {
+            "type": "object"
+          },
+          "leadMetrics": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "period",
+          "salesMetrics",
+          "quoteMetrics",
+          "leadMetrics"
+        ]
+      },
+      "CreateCustomerCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Telekom Operatörü"
+          },
+          "description": {
+            "type": "string",
+            "example": "Büyük ölçekli omurga ve altyapı operatörleri"
+          },
+          "color": {
+            "type": "string",
+            "example": "#004A93",
+            "default": "#004A93"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "DreamFiber Kurumsal Router 10G",
+            "description": "Ürün veya Hizmet Adı"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Dream Telecom",
+            "description": "Marka"
+          },
+          "model": {
+            "type": "string",
+            "example": "DF-10G-PRO",
+            "description": "Model"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHYSICAL",
+              "SOFTWARE",
+              "SERVICE"
+            ],
+            "default": "PHYSICAL",
+            "description": "Ürün Türü: PHYSICAL, SOFTWARE, SERVICE"
+          },
+          "code": {
+            "type": "string",
+            "example": "DF-RTR-10G",
+            "description": "Monospace Ürün Kodu"
+          },
+          "description": {
+            "type": "string",
+            "example": "10 Gbps SFP+ Uplink portlu yüksek hızlı kurumsal yönlendirici"
+          },
+          "unitPrice": {
+            "type": "string",
+            "example": "14500.00",
+            "description": "Birim Liste Fiyatı (string formatında para)"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "default": "TRY"
+          },
+          "taxRate": {
+            "type": "number",
+            "example": 20,
+            "default": 20,
+            "description": "KDV Oranı %"
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "/uploads/product-12345.png",
+            "description": "Ürün Fotoğrafı URL"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "unitPrice"
+        ]
+      },
+      "ProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "object"
+          },
+          "model": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHYSICAL",
+              "SOFTWARE",
+              "SERVICE"
+            ]
+          },
+          "code": {
+            "type": "object"
+          },
+          "description": {
+            "type": "object"
+          },
+          "unitPrice": {
+            "type": "string",
+            "example": "14500.00"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ]
+          },
+          "taxRate": {
+            "type": "number",
+            "example": 20
+          },
+          "imageUrl": {
+            "type": "object"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "unitPrice",
+          "currency",
+          "taxRate",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedProductResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ProductSalesStatDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "object"
+          },
+          "model": {
+            "type": "object"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHYSICAL",
+              "SOFTWARE",
+              "SERVICE"
+            ]
+          },
+          "totalSoldQuantity": {
+            "type": "number",
+            "example": 12,
+            "description": "Toplam Satılan Adet"
+          },
+          "totalRevenue": {
+            "type": "string",
+            "example": "174000.00",
+            "description": "Toplam Ciro (TRY)"
+          },
+          "salesCount": {
+            "type": "number",
+            "example": 5,
+            "description": "Satış Yapılan İşlem Sayısı"
+          }
+        },
+        "required": [
+          "productId",
+          "productName",
+          "type",
+          "totalSoldQuantity",
+          "totalRevenue",
+          "salesCount"
+        ]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "DreamFiber Kurumsal Router 10G"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Dream Telecom"
+          },
+          "model": {
+            "type": "string",
+            "example": "DF-10G-PRO"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PHYSICAL",
+              "SOFTWARE",
+              "SERVICE"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "example": "DF-RTR-10G"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string",
+            "example": "14500.00"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ]
+          },
+          "taxRate": {
+            "type": "number",
+            "example": 20
+          },
+          "imageUrl": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

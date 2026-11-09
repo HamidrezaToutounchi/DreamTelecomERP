@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SALES_REP
+  SALES_MANAGER
+}
+
+enum LeadStatus {
+  NEW
+  CALLED_NO_ANSWER
+  CALLED_REACHED
+  MEETING_SCHEDULED
+  MEETING_DONE
+  CONVERTED
+  LOST
+}
+
+enum CustomerType {
+  CORPORATE
+  INDIVIDUAL
+  DEALER
+}
+
+enum InteractionType {
+  PHONE_CALL
+  IN_PERSON_MEETING
+  ONLINE_MEETING
+  EMAIL
+  WHATSAPP
+  NOTE
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
+  REVISED
+}
+
+enum Currency {
+  TRY
+  USD
+  EUR
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+enum ProductType {
+  PHYSICAL
+  SOFTWARE
+  SERVICE
+}
+
+model User {
+  id                String       @id @default(uuid())
+  email             String       @unique
+  passwordHash      String
+  fullName          String
+  role              Role         @default(SALES_REP)
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  assignedLeads     Lead[]       @relation("AssignedLeads")
+  createdLeads      Lead[]       @relation("CreatedLeads")
+  assignedCustomers Customer[]   @relation("AssignedCustomers")
+  createdCustomers  Customer[]   @relation("CreatedCustomers")
+  interactions      Interaction[]
+  quotes            Quote[]
+  sales             Sale[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+model CustomerCategory {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  color       String     @default("#004A93")
+  customers   Customer[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("customer_categories")
+}
+
+model Lead {
+  id           String       @id @default(uuid())
+  companyName  String
+  contactName  String
+  phone        String
+  email        String?
+  source       String       @default("Web")
+  status       LeadStatus   @default(NEW)
+  assignedToId String?
+  assignedTo   User?        @relation("AssignedLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById  String
+  createdBy    User         @relation("CreatedLeads", fields: [createdById], references: [id])
+  lastActionAt DateTime?
+  notes        String?
+  customer     Customer?
+  interactions Interaction[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("leads")
+}
+
+model Customer {
+  id            String            @id @default(uuid())
+  type          CustomerType      @default(CORPORATE)
+  companyName   String            // Firma ünvanı veya Bireysel Müşteri Adı Soyadı
+  categoryId    String?
+  category      CustomerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  taxNumber     String?
+  taxOffice     String?
+  contactPerson String
+  phone         String
+  email         String?
+  address       String?
+  leadId        String?           @unique
+  lead          Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  assignedToId  String
+  assignedTo    User              @relation("AssignedCustomers", fields: [assignedToId], references: [id])
+  createdById   String
+  createdBy     User              @relation("CreatedCustomers", fields: [createdById], references: [id])
+  interactions  Interaction[]
+  quotes        Quote[]
+  sales         Sale[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("customers")
+}
+
+model Interaction {
+  id               String          @id @default(uuid())
+  customerId       String?
+  customer         Customer?       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  leadId           String?
+  lead             Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User            @relation(fields: [userId], references: [id])
+  type             InteractionType
+  contactedPerson  String
+  summary          String          @db.Text
+  nextFollowUpDate DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("interactions")
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  brand       String?
+  model       String?
+  type        ProductType @default(PHYSICAL)
+  code        String?     @unique
+  description String?     @db.Text
+  unitPrice   Decimal     @default(0) @db.Decimal(15, 2)
+  currency    Currency    @default(TRY)
+  taxRate     Int         @default(20)
+  imageUrl    String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  quoteItems  QuoteItem[]
+
+  @@unique([name, brand, model])
+  @@map("products")
+}
+
+model Quote {
+  id              String       @id @default(uuid())
+  quoteNumber     String       @unique
+  customerId      String
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  repId           String
+  rep             User         @relation(fields: [repId], references: [id])
+  version         Int          @default(1)
+  parentQuoteId   String?
+  parentQuote     Quote?       @relation("QuoteRevisions", fields: [parentQuoteId], references: [id], onDelete: SetNull)
+  revisions       Quote[]      @relation("QuoteRevisions")
+  status          QuoteStatus  @default(DRAFT)
+  rejectionReason String?      @db.Text
+  validUntil      DateTime
+  currency        Currency     @default(TRY)
+  subTotal        Decimal      @db.Decimal(15, 2)
+  taxTotal        Decimal      @db.Decimal(15, 2)
+  grandTotal      Decimal      @db.Decimal(15, 2)
+  notes           String?      @db.Text
+  terms           String?      @db.Text
+  items           QuoteItem[]
+  sales           Sale[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id           String   @id @default(uuid())
+  quoteId      String
+  quote        Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName  String
+  productCode  String?
+  brand        String?
+  model        String?
+  description  String?  @db.Text
+  imageUrl     String?
+  quantity     Int      @default(1)
+  unitPrice    Decimal  @db.Decimal(15, 2)
+  discountRate Decimal  @default(0) @db.Decimal(5, 2)
+  taxRate      Int      @default(20)
+  lineTotal    Decimal  @db.Decimal(15, 2)
+
+  @@map("quote_items")
+}
+
+model Sale {
+  id                 String        @id @default(uuid())
+  quoteId            String?       @unique
+  quote              Quote?        @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  customerId         String
+  customer           Customer      @relation(fields: [customerId], references: [id])
+  repId              String
+  rep                User          @relation(fields: [repId], references: [id])
+  soldItemsSummary   String        @db.Text
+  serialOrMacNumbers String[]      @default([])
+  totalAmount        Decimal       @db.Decimal(15, 2)
+  paidAmount         Decimal       @default(0) @db.Decimal(15, 2)
+  remainingAmount    Decimal       @default(0) @db.Decimal(15, 2)
+  currency           Currency      @default(TRY)
+  isInvoiced         Boolean       @default(false)
+  invoiceNumber      String?
+  invoiceDate        DateTime?
+  paymentStatus      PaymentStatus @default(PENDING)
+  notes              String?       @db.Text
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@map("sales")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String?
+  userEmail String?
+  userRole  Role?
+  action    String   // CREATE, UPDATE, DELETE, REASSIGN, CONVERT, LOGIN, etc.
+  entity    String   // LEAD, CUSTOMER, QUOTE, SALE, PRODUCT, USER, AUTH
+  entityId  String?
+  details   String?  @db.Text
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@map("audit_logs")
+}

@@ -1,0 +1,19 @@
+{
+  "name": "dream-telecom-sdys-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dream Telecom - SDYS (Satış & Dağıtım Yönetim Sistemi)",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend run start:prod",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "seed": "npm --prefix backend run prisma:seed",
+    "prisma:push": "npm --prefix backend run prisma:push",
+    "openapi:export": "npm --prefix backend run openapi:export",
+    "api:gen": "npm run openapi:export && npm --prefix frontend run api:gen",
+    "test:frontend": "npm --prefix frontend run test"
+  }
+}

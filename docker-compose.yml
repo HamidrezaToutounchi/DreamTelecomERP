@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  dt-db:
+    image: postgres:16-alpine
+    container_name: dreamtelecom-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dt_crm_secure_2026!}
+      POSTGRES_DB: ${POSTGRES_DB:-sdys_crm}
+    volumes:
+      - dt_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sdys_crm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dt-network
+
+  dt-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dreamtelecom-backend
+    restart: unless-stopped
+    depends_on:
+      dt-db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_dt_crm_secure_2026!}@dt-db:5432/${POSTGRES_DB:-sdys_crm}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dt_crm_jwt_super_secret_production_key_987654321}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN: "*"
+      RUN_SEED: ${RUN_SEED:-false}
+    volumes:
+      - dt_uploads:/app/uploads
+    networks:
+      - dt-network
+
+  dt-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dreamtelecom-frontend
+    restart: unless-stopped
+    depends_on:
+      - dt-backend
+    ports:
+      - "${FRONTEND_PORT:-8088}:80"
+    networks:
+      - dt-network
+
+volumes:
+  dt_postgres_data:
+    name: dreamtelecom_postgres_data
+  dt_uploads:
+    name: dreamtelecom_uploads
+
+networks:
+  dt-network:
+    name: dreamtelecom_network
+    driver: bridge
