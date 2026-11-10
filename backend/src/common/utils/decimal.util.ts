@@ -11,7 +11,14 @@ export class DecimalUtil {
     if (val === undefined || val === null || val === '') {
       return new Decimal(0);
     }
-    return new Decimal(val);
+    if (val instanceof Decimal) return val;
+    try {
+      const sanitized = String(val).trim().replace(/,/g, '.');
+      const clean = sanitized.endsWith('.') ? sanitized.slice(0, -1) || '0' : sanitized;
+      return new Decimal(clean === '' || clean === '.' || clean === '-' ? 0 : clean);
+    } catch {
+      return new Decimal(0);
+    }
   }
 
   /**

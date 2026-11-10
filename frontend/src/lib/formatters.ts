@@ -9,14 +9,26 @@ Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_UP });
  * Decimal.js ve Intl.NumberFormat standartlarına uygun olarak biçimlendirir.
  */
 export function formatMoney(
-  value: string | Decimal | undefined | null,
+  value: string | number | Decimal | undefined | null,
   currency: string = 'TRY',
 ): string {
   if (value === undefined || value === null || value === '') {
-    return '0,00 ' + currency;
+    return '0,00 ' + (currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₺');
   }
 
-  const dec = value instanceof Decimal ? value : new Decimal(value);
+  let dec: Decimal;
+  if (value instanceof Decimal) {
+    dec = value;
+  } else {
+    try {
+      const sanitized = String(value).trim().replace(/,/g, '.');
+      const clean = sanitized.endsWith('.') ? sanitized.slice(0, -1) || '0' : sanitized;
+      dec = new Decimal(clean === '' || clean === '.' ? 0 : clean);
+    } catch {
+      dec = new Decimal(0);
+    }
+  }
+
   const fixed = dec.toFixed(2);
   const [integerPart, decimalPart] = fixed.split('.');
 

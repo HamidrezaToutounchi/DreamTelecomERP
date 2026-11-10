@@ -21,9 +21,23 @@ import {
   useCustomersControllerFindAll,
   useProductsControllerFindAll,
   useCompaniesControllerFindAll,
+  useAnalyticsControllerGetExchangeRate,
 } from '@/api/generated';
 import { formatMoney } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+
+function toSafeDecimal(val: any): Decimal {
+  if (val === undefined || val === null || val === '') return new Decimal(0);
+  if (val instanceof Decimal) return val;
+  try {
+    const s = String(val).trim().replace(/,/g, '.');
+    if (s === '' || s === '.' || s === '-' || s === '+') return new Decimal(0);
+    const clean = s.endsWith('.') ? s.slice(0, -1) || '0' : s;
+    return new Decimal(clean);
+  } catch {
+    return new Decimal(0);
+  }
+}
 
 export interface QuoteItemRow {
   productId?: string;
@@ -102,6 +116,12 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
     { query: { enabled: isOpen } },
   );
 
+  // Exchange rate query (for live USD/TRY conversion)
+  const { data: exchangeRateData } = useAnalyticsControllerGetExchangeRate({
+    query: { enabled: isOpen },
+  });
+  const usdRate = Number((exchangeRateData as any)?.usdRate) || 50.18;
+
   const customers = (customersData as any)?.data || [];
   const catalogProducts = (catalogData as any)?.data || [];
 
@@ -168,16 +188,16 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
     }
   }, [isOpen, mode, initialQuote, fixedCustomerId]);
 
-  // Canlı Toplam Hesaplama (Decimal.js)
+  // Canlı Toplam Hesaplama (Decimal.js - Virgül ve Nokta Destekli)
   const totals = useMemo(() => {
     let subTotalAcc = new Decimal(0);
     let taxTotalAcc = new Decimal(0);
 
     items.forEach((item) => {
-      const qty = new Decimal(item.quantity || 1);
-      const price = new Decimal(item.unitPrice || 0);
-      const disc = new Decimal(item.discountRate || 0);
-      const taxR = new Decimal(item.taxRate || 20).dividedBy(100);
+      const qty = toSafeDecimal(item.quantity || 1);
+      const price = toSafeDecimal(item.unitPrice);
+      const disc = toSafeDecimal(item.discountRate);
+      const taxR = toSafeDecimal(item.taxRate ?? 20).dividedBy(100);
 
       const lineSub = qty.times(price);
       const discAmount = lineSub.times(disc).dividedBy(100);
@@ -278,8 +298,8 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
               description: i.description?.trim() || undefined,
               imageUrl: i.imageUrl || undefined,
               quantity: Number(i.quantity) || 1,
-              unitPrice: i.unitPrice,
-              discountRate: i.discountRate || '0',
+              unitPrice: (i.unitPrice || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
+              discountRate: (i.discountRate || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
               taxRate: Number(i.taxRate) || 20,
             })),
             notes: notes.trim() || undefined,
@@ -309,8 +329,8 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
               description: i.description?.trim() || undefined,
               imageUrl: i.imageUrl || undefined,
               quantity: Number(i.quantity) || 1,
-              unitPrice: i.unitPrice,
-              discountRate: i.discountRate || '0',
+              unitPrice: (i.unitPrice || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
+              discountRate: (i.discountRate || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
               taxRate: Number(i.taxRate) || 20,
             })),
             notes: notes.trim() || undefined,
@@ -539,7 +559,16 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
                             updated[idx].brand = selected.brand || '';
                             updated[idx].model = selected.model || '';
                             updated[idx].description = selected.description || '';
-                            updated[idx].unitPrice = selected.unitPrice?.toString() || '0';
+
+                            let targetPrice = selected.unitPrice?.toString() || '0';
+                            const prodPrice = Number(selected.unitPrice) || 0;
+                            if (selected.currency === 'USD' && currency === 'TRY') {
+                              targetPrice = (prodPrice * usdRate).toFixed(2);
+                            } else if (selected.currency === 'TRY' && currency === 'USD') {
+                              targetPrice = (prodPrice / usdRate).toFixed(2);
+                            }
+
+                            updated[idx].unitPrice = targetPrice;
                             updated[idx].taxRate = Number(selected.taxRate) || 20;
                             updated[idx].imageUrl = selected.imageUrl || undefined;
                             setItems(updated);
@@ -550,7 +579,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
                         <option value="">Manuel Tanım (veya katalogdan seç)...</option>
                         {catalogProducts.map((p: any) => (
                           <option key={p.id} value={p.id}>
-                            [{p.type === 'PHYSICAL' ? 'Fiziksel' : p.type === 'SOFTWARE' ? 'Yazılım' : 'Hizmet'}] {p.name} {p.brand ? `(${p.brand})` : ''} - {formatMoney(p.unitPrice)}
+                            [{p.type === 'PHYSICAL' ? 'Fiziksel' : p.type === 'SOFTWARE' ? 'Yazılım' : 'Hizmet'}] {p.name} {p.brand ? `(${p.brand})` : ''} - {formatMoney(p.unitPrice, p.currency)}
                           </option>
                         ))}
                       </select>

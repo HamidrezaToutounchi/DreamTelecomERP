@@ -42,7 +42,8 @@ export const ProductsPage: React.FC = () => {
   const [type, setType] = useState<'PHYSICAL' | 'SOFTWARE' | 'SERVICE'>('PHYSICAL');
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
-  const [unitPrice, setUnitPrice] = useState('1000.00');
+  const [currency, setCurrency] = useState<'TRY' | 'USD' | 'EUR'>('USD');
+  const [unitPrice, setUnitPrice] = useState('100.00');
   const [taxRate, setTaxRate] = useState<number>(20);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [isUploading, setIsUploading] = useState(false);
@@ -103,7 +104,8 @@ export const ProductsPage: React.FC = () => {
           type,
           code: code.trim() || undefined,
           description: description.trim() || undefined,
-          unitPrice,
+          currency,
+          unitPrice: (unitPrice || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
           taxRate: Number(taxRate) || 20,
           imageUrl,
         },
@@ -116,7 +118,8 @@ export const ProductsPage: React.FC = () => {
       setModel('');
       setCode('');
       setDescription('');
-      setUnitPrice('1000.00');
+      setCurrency('USD');
+      setUnitPrice('100.00');
       setImageUrl(undefined);
       queryClient.invalidateQueries({ queryKey: ['/api/v1/products'] });
     } catch (err: any) {
@@ -530,8 +533,8 @@ export const ProductsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Kod, Birim Fiyat & KDV */}
-              <div className="grid grid-cols-3 gap-2.5">
+              {/* Kod, Para Birimi, Birim Fiyat & KDV */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="font-semibold text-foreground">Ürün Kodu</label>
@@ -539,17 +542,32 @@ export const ProductsPage: React.FC = () => {
                   </div>
                   <input
                     type="text"
-                    placeholder="Boş bırakılırsa sistem otomatik üretir"
+                    placeholder="Boşsa otomatik"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Liste Fiyatı (TRY) *</label>
+                  <label className="font-semibold text-foreground">Para Birimi *</label>
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value as any)}
+                    className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-bold cursor-pointer text-navy-800 dark:text-navy-200"
+                  >
+                    <option value="USD">$ Amerikan Doları (USD)</option>
+                    <option value="TRY">₺ Türk Lirası (TRY)</option>
+                    <option value="EUR">€ Euro (EUR)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">
+                    Liste Fiyatı ({currency === 'USD' ? '$ USD' : currency === 'EUR' ? '€ EUR' : '₺ TRY'}) *
+                  </label>
                   <input
                     type="text"
                     required
+                    placeholder="Örn: 1250,00"
                     value={unitPrice}
                     onChange={(e) => setUnitPrice(e.target.value)}
                     className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-mono font-bold"

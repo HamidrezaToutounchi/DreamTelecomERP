@@ -63,8 +63,10 @@ export const SalesPage: React.FC = () => {
   const remainingCalculated = useMemo(() => {
     if (!editSaleModal) return '0.00';
     try {
-      const total = new Decimal(totalAmount || editSaleModal.totalAmount || 0);
-      const paid = new Decimal(paidAmount || 0);
+      const tStr = String(totalAmount || editSaleModal.totalAmount || 0).replace(/,/g, '.').trim();
+      const pStr = String(paidAmount || 0).replace(/,/g, '.').trim();
+      const total = new Decimal(tStr === '' || tStr === '.' ? 0 : tStr);
+      const paid = new Decimal(pStr === '' || pStr === '.' ? 0 : pStr);
       const remaining = total.minus(paid);
       return remaining.isNegative() ? '0.00' : remaining.toFixed(2);
     } catch {
