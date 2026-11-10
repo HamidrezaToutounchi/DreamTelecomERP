@@ -427,7 +427,7 @@ export const ProductsPage: React.FC = () => {
       {/* ================= MODAL: YENİ ÜRÜN / HİZMET TANIMLA ================= */}
       {createModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
+          <div className="bg-card w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
             <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -441,13 +441,13 @@ export const ProductsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCreateModalOpen(false)}
-                className="text-slate-400 hover:text-foreground text-sm font-bold"
+                className="text-slate-400 hover:text-foreground text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs">
+            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
               {/* Ürün Türü */}
               <div className="space-y-1">
                 <label className="font-semibold text-foreground">Ürün / Hizmet Türü *</label>
@@ -510,7 +510,7 @@ export const ProductsPage: React.FC = () => {
               </div>
 
               {/* Marka & Model */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
                   <label className="font-semibold text-foreground">Marka (Örn: Dream Telecom)</label>
                   <input
@@ -533,8 +533,8 @@ export const ProductsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Kod, Para Birimi, Birim Fiyat & KDV */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+              {/* Kod ve KDV Oranı */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <label className="font-semibold text-foreground">Ürün Kodu</label>
@@ -542,18 +542,35 @@ export const ProductsPage: React.FC = () => {
                   </div>
                   <input
                     type="text"
-                    placeholder="Boşsa otomatik"
+                    placeholder="Boş bırakılırsa sistem otomatik üretir"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Para Birimi *</label>
+                  <label className="font-semibold text-foreground">KDV Oranı % *</label>
+                  <select
+                    value={taxRate}
+                    onChange={(e) => setTaxRate(Number(e.target.value))}
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-semibold cursor-pointer"
+                  >
+                    <option value={20}>%20 KDV (Genel Standart)</option>
+                    <option value={10}>%10 KDV</option>
+                    <option value={1}>%1 KDV</option>
+                    <option value={0}>%0 KDV (Muaf)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Para Birimi & Liste Fiyatı (Geniş ve Ferah) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Fiyat Para Birimi *</label>
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value as any)}
-                    className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-bold cursor-pointer text-navy-800 dark:text-navy-200"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-bold cursor-pointer text-navy-800 dark:text-navy-200"
                   >
                     <option value="USD">$ Amerikan Doları (USD)</option>
                     <option value="TRY">₺ Türk Lirası (TRY)</option>
@@ -567,24 +584,11 @@ export const ProductsPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Örn: 1250,00"
+                    placeholder={currency === 'USD' ? 'Örn: 100.00' : 'Örn: 1000.00'}
                     value={unitPrice}
                     onChange={(e) => setUnitPrice(e.target.value)}
                     className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-mono font-bold"
                   />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">KDV Oranı %</label>
-                  <select
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value))}
-                    className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs font-semibold cursor-pointer"
-                  >
-                    <option value={20}>%20</option>
-                    <option value={10}>%10</option>
-                    <option value={1}>%1</option>
-                    <option value={0}>%0</option>
-                  </select>
                 </div>
               </div>
 

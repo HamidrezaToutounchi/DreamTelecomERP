@@ -10,6 +10,8 @@ import {
   DollarSign,
   AlertCircle,
   Upload,
+  CheckCircle2,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -84,6 +86,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
   const [terms, setTerms] = useState(
     '1. Teklif 30 gün süreyle geçerlidir.\n2. Fiyatlarımıza KDV dahildir.\n3. Kurulum ve devreye alma Dream Telecom uzman ekiplerince yapılacaktır.',
   );
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
   const [items, setItems] = useState<QuoteItemRow[]>([
     {
@@ -261,12 +264,12 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const targetCustId = fixedCustomerId || customerId;
     if (!targetCustId && mode === 'create') {
-      toast.error('Lütfen bir müşteri seçiniz.');
+      toast.error('Lütfen bir hedef müşteri seçiniz.');
       return;
     }
 
@@ -282,6 +285,11 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
       }
     }
 
+    setConfirmModalOpen(true);
+  };
+
+  const handleFinalConfirm = async () => {
+    const targetCustId = fixedCustomerId || customerId;
     try {
       if (mode === 'revise') {
         const revised = await reviseMutation.mutateAsync({
@@ -312,6 +320,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['/api/v1/quotes'] });
         queryClient.invalidateQueries({ queryKey: ['/api/v1/customers'] });
         queryClient.invalidateQueries({ queryKey: ['/api/v1/analytics/dashboard-summary'] });
+        setConfirmModalOpen(false);
         onClose();
         if (onSuccess) onSuccess(revised);
       } else {
@@ -343,6 +352,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['/api/v1/quotes'] });
         queryClient.invalidateQueries({ queryKey: ['/api/v1/customers'] });
         queryClient.invalidateQueries({ queryKey: ['/api/v1/analytics/dashboard-summary'] });
+        setConfirmModalOpen(false);
         onClose();
         if (onSuccess) onSuccess(created);
       }
@@ -378,7 +388,7 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handlePreSubmit} className="space-y-4">
           {/* Teklif Veren Şirket Seçimi (Dream Telecom & Tescom Telecom) */}
           <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 space-y-2">
             <div className="flex items-center justify-between">
@@ -559,18 +569,15 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
                             updated[idx].brand = selected.brand || '';
                             updated[idx].model = selected.model || '';
                             updated[idx].description = selected.description || '';
-
-                            let targetPrice = selected.unitPrice?.toString() || '0';
-                            const prodPrice = Number(selected.unitPrice) || 0;
-                            if (selected.currency === 'USD' && currency === 'TRY') {
-                              targetPrice = (prodPrice * usdRate).toFixed(2);
-                            } else if (selected.currency === 'TRY' && currency === 'USD') {
-                              targetPrice = (prodPrice / usdRate).toFixed(2);
-                            }
-
-                            updated[idx].unitPrice = targetPrice;
+                            updated[idx].unitPrice = selected.unitPrice?.toString() || '0';
                             updated[idx].taxRate = Number(selected.taxRate) || 20;
                             updated[idx].imageUrl = selected.imageUrl || undefined;
+
+                            // Ürünün kendi para birimi neyse teklif para birimini ona eşitle (kullanıcı karıştırmasın)
+                            if (selected.currency && (selected.currency === 'USD' || selected.currency === 'TRY')) {
+                              setCurrency(selected.currency as 'TRY' | 'USD');
+                            }
+
                             setItems(updated);
                           }
                         }}
@@ -834,10 +841,141 @@ export const QuoteFormModal: React.FC<QuoteFormModalProps> = ({
               disabled={isPending}
               className="px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
-              {isPending ? 'Kaydediliyor...' : 'Teklifi Kaydet'}
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Teklifi İncele & Kaydet</span>
             </button>
           </div>
         </form>
+
+        {/* ================= ONAY MODALI (KAYDETMEDEN ÖNCE GÖZDEN GEÇİRME) ================= */}
+        {confirmModalOpen && (
+          <div className="fixed inset-0 z-70 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-card w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-foreground">
+                      Teklif Bilgilerini Onaylıyor musunuz?
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Lütfen kaydetmeden önce aşağıdaki bilgileri gözden geçiriniz.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfirmModalOpen(false)}
+                  className="text-slate-400 hover:text-foreground text-sm font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Özet Kartı */}
+              <div className="space-y-3 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200/70 dark:border-slate-800 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Hedef Müşteri:</span>
+                    <span className="font-bold text-foreground text-sm">
+                      {customers.find((c: any) => c.id === (fixedCustomerId || customerId))?.companyName ||
+                        initialQuote?.customer?.name ||
+                        'Seçili Müşteri'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Teklif Veren Firma:</span>
+                    <span className="font-bold text-foreground">
+                      {companies.find((c: any) => c.id === companyId)?.name || 'Dream Telecom'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-800 text-[11px]">
+                  <div>
+                    <span className="text-muted-foreground block">Para Birimi:</span>
+                    <span className="font-extrabold text-navy-700 dark:text-navy-300">
+                      {currency === 'USD' ? '$ Amerikan Doları (USD)' : '₺ Türk Lirası (TRY)'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block">Kalem Sayısı:</span>
+                    <span className="font-bold text-foreground">{items.length} Kalem</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block">Geçerlilik:</span>
+                    <span className="font-bold text-foreground">
+                      {validUntil ? new Date(validUntil).toLocaleDateString('tr-TR') : '30 Gün'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Kalemler Mini Tablo */}
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                  <span className="text-[11px] font-bold text-muted-foreground block mb-1">
+                    Girdiğiniz Kalemler:
+                  </span>
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {items.map((it, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between py-1 px-2 rounded bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700 text-[11px]"
+                      >
+                        <span className="font-medium text-foreground truncate max-w-[220px]">
+                          {i + 1}. {it.productName || 'İsimsiz Kalem'}
+                        </span>
+                        <span className="font-mono font-bold text-navy-700 dark:text-navy-300">
+                          {it.quantity} adet &bull; {it.unitPrice} {currency === 'USD' ? '$' : '₺'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Toplam */}
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">KDV Dahil Toplam:</span>
+                    <span className="font-bold text-foreground">Ara Toplam: {formatMoney(totals.subTotal, currency)}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-black text-navy-700 dark:text-navy-300 text-lg block">
+                      {formatMoney(totals.grandTotal, currency)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Butonlar */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setConfirmModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-muted-foreground cursor-pointer transition-colors"
+                >
+                  ← Düzenlemeye Dön
+                </button>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleFinalConfirm}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {isPending ? (
+                    <span>Kaydediliyor...</span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      <span>Evet, Bilgiler Doğru - Teklifi Kaydet</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
