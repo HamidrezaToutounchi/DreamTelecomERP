@@ -20,7 +20,8 @@ export async function downloadQuotePdf(quoteId: string, quoteNumber: string) {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `DreamTelecom_Teklif_${quoteNumber}.pdf`;
+    const prefix = quoteNumber && quoteNumber.startsWith('TS-') ? 'TescomTelecom' : 'DreamTelecom';
+    link.download = `${prefix}_Teklif_${quoteNumber}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -28,6 +29,20 @@ export async function downloadQuotePdf(quoteId: string, quoteNumber: string) {
 
     toast.success(`${quoteNumber} PDF dosyası başarıyla indirildi.`, { id: toastId });
   } catch (err: any) {
-    toast.error('PDF indirilemedi. Lütfen oturumunuzu kontrol edin.', { id: toastId });
+    let errorMsg = 'PDF indirilemedi. Lütfen bağlantınızı veya oturumunuzu kontrol edin.';
+    if (err?.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text();
+        const json = JSON.parse(text);
+        if (json.message) {
+          errorMsg = Array.isArray(json.message) ? json.message.join(', ') : json.message;
+        }
+      } catch {}
+    } else if (err?.response?.data?.message) {
+      errorMsg = err.response.data.message;
+    } else if (err?.message) {
+      errorMsg = err.message;
+    }
+    toast.error(`PDF İndirilemedi: ${errorMsg}`, { id: toastId });
   }
 }

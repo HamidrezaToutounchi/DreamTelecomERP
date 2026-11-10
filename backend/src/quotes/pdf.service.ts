@@ -30,6 +30,23 @@ export class PdfService {
     }
   }
 
+  /**
+   * PDFKit yalnızca ham JPEG ve PNG destekler.
+   * WebP, GIF, SVG veya bozuk resimler PDFKit'i çökerteceği için sihirli baytları (magic bytes) doğrular.
+   */
+  private isValidPdfImage(buf: Buffer): 'image/png' | 'image/jpeg' | null {
+    if (!buf || buf.length < 8) return null;
+    // PNG Magic Bytes: 89 50 4E 47
+    if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+      return 'image/png';
+    }
+    // JPEG Magic Bytes: FF D8 FF
+    if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+      return 'image/jpeg';
+    }
+    return null;
+  }
+
   private formatMoney(val: any, currency = 'TRY'): string {
     if (val === null || val === undefined || val === '') return `0,00 ${currency}`;
     const num = typeof val === 'number' ? val : parseFloat(val);
@@ -49,7 +66,7 @@ export class PdfService {
     return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
-  async generateQuotePdf(quote: any): Promise<Buffer> {
+  private buildDocDefinition(quote: any, includeImages = true): any {
     const company = quote.company || {};
     const isTescom = company.code === 'TESCOM' || (quote.quoteNumber && quote.quoteNumber.startsWith('TS-'));
 
@@ -83,17 +100,22 @@ export class PdfService {
       color: corporateBlue,
     };
 
-    const logoFilename = isTescom ? 'tescom-logo.png' : 'logo.png';
-    const logoPath = path.join(process.cwd(), 'assets', logoFilename);
-    if (fs.existsSync(logoPath)) {
-      try {
-        const logoBuffer = fs.readFileSync(logoPath);
-        logoImageDef = {
-          image: `data:image/png;base64,${logoBuffer.toString('base64')}`,
-          width: isTescom ? 150 : 140,
-        };
-      } catch (err) {
-        this.logger.warn(`${logoFilename} okunamadı, metin kullanılacak`);
+    if (includeImages) {
+      const logoFilename = isTescom ? 'tescom-logo.png' : 'logo.png';
+      const logoPath = path.join(process.cwd(), 'assets', logoFilename);
+      if (fs.existsSync(logoPath)) {
+        try {
+          const logoBuffer = fs.readFileSync(logoPath);
+          const mime = this.isValidPdfImage(logoBuffer);
+          if (mime) {
+            logoImageDef = {
+              image: `data:${mime};base64,${logoBuffer.toString('base64')}`,
+              width: isTescom ? 150 : 140,
+            };
+          }
+        } catch (err) {
+          this.logger.warn(`${logoFilename} okunamadı, metin kullanılacak`);
+        }
       }
     }
 
@@ -111,7 +133,7 @@ export class PdfService {
     for (const item of items) {
       // Kalem Ürün Fotoğrafı Varsa Base64 Okuma (Esnek çoklu dizin tarama)
       let itemImageDef: any = null;
-      if (item.imageUrl) {
+      if (includeImages && item.imageUrl) {
         try {
           const cleanPath = item.imageUrl.replace(/^\//, '');
           const filename = path.basename(cleanPath);
@@ -128,7 +150,7 @@ export class PdfService {
 
           let foundPath: string | null = null;
           for (const cand of candidatePaths) {
-            if (fs.existsSync(cand)) {
+            if (fs.existsSync(cand) && fs.statSync(cand).isFile()) {
               foundPath = cand;
               break;
             }
@@ -136,13 +158,14 @@ export class PdfService {
 
           if (foundPath) {
             const imgBuffer = fs.readFileSync(foundPath);
-            const ext = path.extname(foundPath).toLowerCase().replace('.', '');
-            const mime = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
-            itemImageDef = {
-              image: `data:${mime};base64,${imgBuffer.toString('base64')}`,
-              width: 44,
-              height: 44,
-            };
+            const mime = this.isValidPdfImage(imgBuffer);
+            if (mime) {
+              itemImageDef = {
+                image: `data:${mime};base64,${imgBuffer.toString('base64')}`,
+                width: 44,
+                height: 44,
+              };
+            }
           }
         } catch {
           // Resim okunamadıysa sessizce devam et
@@ -150,7 +173,7 @@ export class PdfService {
       }
 
       const productDescStack: any[] = [
-        { text: item.productName, bold: true, fontSize: 9.5, color: '#0F172A' },
+        { text: item.productName || 'Belirtilmedi', bold: true, fontSize: 9.5, color: '#0F172A' },
       ];
 
       const brandModelText = [
@@ -190,14 +213,14 @@ export class PdfService {
 
       tableBody.push([
         firstColContent,
-        { text: item.quantity.toString(), fontSize: 9, alignment: 'center' },
+        { text: String(item.quantity ?? 1), fontSize: 9, alignment: 'center' },
         { text: this.formatMoney(item.unitPrice, quote.currency), fontSize: 9, alignment: 'right' },
         {
           text: item.discountRate ? `%${item.discountRate}` : '%0',
           fontSize: 9,
           alignment: 'center',
         },
-        { text: `%${item.taxRate}`, fontSize: 9, alignment: 'center' },
+        { text: `%${item.taxRate ?? 20}`, fontSize: 9, alignment: 'center' },
         {
           text: this.formatMoney(item.lineTotal, quote.currency),
           bold: true,
@@ -207,14 +230,6 @@ export class PdfService {
         },
       ]);
     }
-
-    const statusTranslations: Record<string, string> = {
-      DRAFT: 'Taslak (DRAFT)',
-      SENT: 'Müşteriye Sunuldu (SENT)',
-      APPROVED: 'Onaylandı (APPROVED)',
-      REJECTED: 'Reddedildi (REJECTED)',
-      REVISED: 'Revize Edildi (REVISED)',
-    };
 
     // KDV etiketi dinamik hesaplama (tüm kalemler aynı KDV oranına sahipse örn: %10, farklı ise 'KDV Toplamı:')
     const taxRates = (quote.items || []).map((it: any) => it.taxRate ?? 20);
@@ -270,7 +285,7 @@ export class PdfService {
                 {
                   text: [
                     { text: 'Teklif No: ', bold: true },
-                    { text: quote.quoteNumber, color: corporateBlue, bold: true },
+                    { text: quote.quoteNumber || '-', color: corporateBlue, bold: true },
                   ],
                   fontSize: 10,
                   alignment: 'right',
@@ -327,11 +342,13 @@ export class PdfService {
                 { text: `Yetkili: ${customer.contactPerson || '-'}` },
                 { text: `Telefon: ${customer.phone || '-'}` },
                 { text: `E-posta: ${customer.email || '-'}` },
-                customer.taxNumber
-                  ? {
-                      text: `Vergi Dairesi / No: ${customer.taxOffice || '-'} / ${customer.taxNumber}`,
-                    }
-                  : {},
+                ...(customer.taxNumber
+                  ? [
+                      {
+                        text: `Vergi Dairesi / No: ${customer.taxOffice || '-'} / ${customer.taxNumber}`,
+                      },
+                    ]
+                  : []),
               ],
             },
             {
@@ -430,38 +447,42 @@ export class PdfService {
           margin: [0, 0, 0, 20],
         },
 
-        // Notlar ve Koşullar
-        quote.notes
-          ? {
-              stack: [
-                {
-                  text: 'ÖZEL NOTLAR',
-                  fontSize: 9.5,
-                  bold: true,
-                  color: corporateBlue,
-                  margin: [0, 0, 0, 2],
-                },
-                { text: quote.notes, fontSize: 8.5, color: '#334155' },
-              ],
-              margin: [0, 0, 0, 10],
-            }
-          : {},
+        // Notlar ve Koşullar (Boş obje eklenmez)
+        ...(quote.notes
+          ? [
+              {
+                stack: [
+                  {
+                    text: 'ÖZEL NOTLAR',
+                    fontSize: 9.5,
+                    bold: true,
+                    color: corporateBlue,
+                    margin: [0, 0, 0, 2],
+                  },
+                  { text: quote.notes, fontSize: 8.5, color: '#334155' },
+                ],
+                margin: [0, 0, 0, 10],
+              },
+            ]
+          : []),
 
-        quote.terms
-          ? {
-              stack: [
-                {
-                  text: 'ŞARTLAR VE KOŞULLAR',
-                  fontSize: 9.5,
-                  bold: true,
-                  color: corporateBlue,
-                  margin: [0, 0, 0, 2],
-                },
-                { text: quote.terms, fontSize: 8.5, color: '#334155' },
-              ],
-              margin: [0, 0, 0, 20],
-            }
-          : {},
+        ...(quote.terms
+          ? [
+              {
+                stack: [
+                  {
+                    text: 'ŞARTLAR VE KOŞULLAR',
+                    fontSize: 9.5,
+                    bold: true,
+                    color: corporateBlue,
+                    margin: [0, 0, 0, 2],
+                  },
+                  { text: quote.terms, fontSize: 8.5, color: '#334155' },
+                ],
+                margin: [0, 0, 0, 20],
+              },
+            ]
+          : []),
 
         // İmza ve Onay Bölümü
         {
@@ -510,13 +531,44 @@ export class PdfService {
       },
     };
 
+    return docDefinition;
+  }
+
+  private renderDocToBuffer(docDefinition: any): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      const pdfDoc = this.printer.createPdfKitDocument(docDefinition);
-      const chunks: Buffer[] = [];
-      pdfDoc.on('data', (chunk: Buffer) => chunks.push(chunk));
-      pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
-      pdfDoc.on('error', (err: any) => reject(err));
-      pdfDoc.end();
+      try {
+        const pdfDoc = this.printer.createPdfKitDocument(docDefinition);
+        const chunks: Buffer[] = [];
+        pdfDoc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
+        pdfDoc.on('error', (err: any) => reject(err));
+        pdfDoc.end();
+      } catch (err) {
+        reject(err);
+      }
     });
+  }
+
+  async generateQuotePdf(quote: any): Promise<Buffer> {
+    try {
+      // 1. Önce ürün fotoğrafları ve kurumsal logolarla PDF üretmeyi dene
+      const docDefinition = this.buildDocDefinition(quote, true);
+      return await this.renderDocToBuffer(docDefinition);
+    } catch (err: any) {
+      this.logger.warn(
+        `PDF görsellerle üretilirken hata oluştu (${err?.message || err}). Görselsiz güvenli şablon ile yeniden deneniyor...`,
+      );
+      try {
+        // 2. Görsel hatası durumunda PDF üretimini kurtarmak için görselsiz fallback şablonu kullan
+        const fallbackDocDef = this.buildDocDefinition(quote, false);
+        return await this.renderDocToBuffer(fallbackDocDef);
+      } catch (fallbackErr: any) {
+        this.logger.error(
+          `PDF üretimi tamamen başarısız oldu: ${fallbackErr?.message || fallbackErr}`,
+          fallbackErr?.stack,
+        );
+        throw fallbackErr;
+      }
+    }
   }
 }

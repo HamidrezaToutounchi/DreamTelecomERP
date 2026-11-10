@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Res,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProduces } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -30,6 +31,8 @@ import { CurrentUser, AuthenticatedUser } from '../common/decorators/current-use
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('quotes')
 export class QuotesController {
+  private readonly logger = new Logger(QuotesController.name);
+
   constructor(private readonly quotesService: QuotesService) {}
 
   @Post()
@@ -109,14 +112,23 @@ export class QuotesController {
     @CurrentUser() user: AuthenticatedUser,
     @Res() res: Response,
   ) {
-    const { buffer, quoteNumber } = await this.quotesService.getPdfBuffer(id, user);
+    try {
+      const { buffer, quoteNumber } = await this.quotesService.getPdfBuffer(id, user);
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="Teklif_${quoteNumber}.pdf"`,
-      'Content-Length': buffer.length,
-    });
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="Teklif_${quoteNumber}.pdf"`,
+        'Content-Length': buffer.length,
+      });
 
-    res.end(buffer);
+      res.end(buffer);
+    } catch (err: any) {
+      this.logger.error(`PDF indirme hatası (Teklif ID: ${id}): ${err?.message || err}`, err?.stack);
+      const status = err?.status || err?.statusCode || 500;
+      res.status(status).json({
+        statusCode: status,
+        message: err?.message || 'PDF oluşturulurken bir hata meydana geldi.',
+      });
+    }
   }
 }
