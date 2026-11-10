@@ -13,6 +13,7 @@ import {
   BarChart3,
   CheckCircle2,
   Upload,
+  Pencil,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,6 +21,7 @@ import axios from 'axios';
 import {
   useProductsControllerFindAll,
   useProductsControllerCreate,
+  useProductsControllerUpdate,
   useProductsControllerGetProductSalesSummary,
 } from '@/api/generated';
 import { useAuth } from '@/context/AuthContext';
@@ -34,6 +36,7 @@ export const ProductsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'PHYSICAL' | 'SOFTWARE' | 'SERVICE' | 'SALES_REPORT'>('ALL');
   const [search, setSearch] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -65,6 +68,37 @@ export const ProductsPage: React.FC = () => {
   );
 
   const createMutation = useProductsControllerCreate();
+  const updateMutation = useProductsControllerUpdate();
+
+  const handleOpenCreateModal = () => {
+    setEditingProduct(null);
+    setName('');
+    setBrand('');
+    setModel('');
+    setType('PHYSICAL');
+    setCode('');
+    setDescription('');
+    setCurrency('USD');
+    setUnitPrice('100.00');
+    setTaxRate(20);
+    setImageUrl(undefined);
+    setCreateModalOpen(true);
+  };
+
+  const handleOpenEditModal = (p: any) => {
+    setEditingProduct(p);
+    setName(p.name || '');
+    setBrand(p.brand || '');
+    setModel(p.model || '');
+    setType(p.type || 'PHYSICAL');
+    setCode(p.code || '');
+    setDescription(p.description || '');
+    setCurrency(p.currency || 'USD');
+    setUnitPrice(p.unitPrice ? String(p.unitPrice) : '100.00');
+    setTaxRate(p.taxRate ?? 20);
+    setImageUrl(p.imageUrl || undefined);
+    setCreateModalOpen(true);
+  };
 
   const handlePhotoUpload = async (file: File) => {
     setIsUploading(true);
@@ -88,31 +122,42 @@ export const ProductsPage: React.FC = () => {
     }
   };
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const handleSubmitProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error('Ürün/Hizmet adı zorunludur.');
       return;
     }
 
-    try {
-      await createMutation.mutateAsync({
-        data: {
-          name: name.trim(),
-          brand: brand.trim() || undefined,
-          model: model.trim() || undefined,
-          type,
-          code: code.trim() || undefined,
-          description: description.trim() || undefined,
-          currency,
-          unitPrice: (unitPrice || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
-          taxRate: Number(taxRate) || 20,
-          imageUrl,
-        },
-      });
+    const payload = {
+      name: name.trim(),
+      brand: brand.trim() || undefined,
+      model: model.trim() || undefined,
+      type,
+      code: code.trim() || undefined,
+      description: description.trim() || undefined,
+      currency,
+      unitPrice: (unitPrice || '0').replace(/,/g, '.').replace(/\.+$/, '').trim() || '0',
+      taxRate: Number(taxRate) || 20,
+      imageUrl,
+    };
 
-      toast.success('Yeni ürün/hizmet kataloğa eklendi.');
+    try {
+      if (editingProduct) {
+        await updateMutation.mutateAsync({
+          id: editingProduct.id,
+          data: payload,
+        });
+        toast.success(`"${name}" ürünü başarıyla güncellendi.`);
+      } else {
+        await createMutation.mutateAsync({
+          data: payload,
+        });
+        toast.success('Yeni ürün/hizmet kataloğa eklendi.');
+      }
+
       setCreateModalOpen(false);
+      setEditingProduct(null);
       setName('');
       setBrand('');
       setModel('');
@@ -123,7 +168,7 @@ export const ProductsPage: React.FC = () => {
       setImageUrl(undefined);
       queryClient.invalidateQueries({ queryKey: ['/api/v1/products'] });
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Ürün eklenemedi.');
+      toast.error(err?.response?.data?.message || (editingProduct ? 'Ürün güncellenemedi.' : 'Ürün eklenemedi.'));
     }
   };
 
@@ -146,7 +191,7 @@ export const ProductsPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setCreateModalOpen(true)}
+          onClick={handleOpenCreateModal}
           className="inline-flex items-center gap-2 px-4 py-2 bg-navy-700 hover:bg-navy-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer h-10"
         >
           <Plus className="w-4 h-4" />
@@ -339,7 +384,7 @@ export const ProductsPage: React.FC = () => {
               <p className="text-xs font-bold text-foreground">Kayıtlı ürün veya hizmet bulunamadı.</p>
               <button
                 type="button"
-                onClick={() => setCreateModalOpen(true)}
+                onClick={handleOpenCreateModal}
                 className="mt-3 text-xs text-navy-600 dark:text-navy-400 font-bold underline cursor-pointer"
               >
                 Yeni Ürün Tanımla &rarr;
@@ -356,6 +401,7 @@ export const ProductsPage: React.FC = () => {
                     <th className="py-3 px-4">Ürün Kodu</th>
                     <th className="py-3 px-4 text-right">Liste Fiyatı</th>
                     <th className="py-3 px-4 text-center">KDV %</th>
+                    <th className="py-3 px-4 text-right">İşlemler</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
@@ -415,6 +461,17 @@ export const ProductsPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-center font-mono text-muted-foreground">
                         %{p.taxRate}
                       </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(p)}
+                          title="Ürünü Güncelle"
+                          className="px-2.5 py-1.5 rounded-lg bg-navy-50 hover:bg-navy-100 dark:bg-navy-950/60 dark:hover:bg-navy-900 text-navy-700 dark:text-navy-300 border border-navy-200 dark:border-navy-800 transition-colors inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer shadow-2xs"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span>Düzenle</span>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -424,7 +481,7 @@ export const ProductsPage: React.FC = () => {
         </div>
       )}
 
-      {/* ================= MODAL: YENİ ÜRÜN / HİZMET TANIMLA ================= */}
+      {/* ================= MODAL: ÜRÜN / HİZMET TANIMLA VEYA DÜZENLE ================= */}
       {createModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-card w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
@@ -432,22 +489,27 @@ export const ProductsPage: React.FC = () => {
               <div>
                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <Package className="w-5 h-5 text-navy-700 dark:text-navy-400" />
-                  Yeni Ürün / Hizmet Tanımla
+                  {editingProduct ? 'Ürün / Hizmet Bilgilerini Güncelle' : 'Yeni Ürün / Hizmet Tanımla'}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Mükerrer veri kaydını önlemek için isim, marka ve model kombinasyonu kontrol edilir.
+                  {editingProduct
+                    ? 'Katalogdaki mevcut ürünün fiyat, para birimi, kod ve açıklamalarını güncelleyin.'
+                    : 'Mükerrer veri kaydını önlemek için isim, marka ve model kombinasyonu kontrol edilir.'}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setCreateModalOpen(false)}
+                onClick={() => {
+                  setCreateModalOpen(false);
+                  setEditingProduct(null);
+                }}
                 className="text-slate-400 hover:text-foreground text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
+            <form onSubmit={handleSubmitProduct} className="space-y-4 text-xs">
               {/* Ürün Türü */}
               <div className="space-y-1">
                 <label className="font-semibold text-foreground">Ürün / Hizmet Türü *</label>
@@ -642,17 +704,24 @@ export const ProductsPage: React.FC = () => {
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
-                  onClick={() => setCreateModalOpen(false)}
+                  onClick={() => {
+                    setCreateModalOpen(false);
+                    setEditingProduct(null);
+                  }}
                   className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
-                  disabled={createMutation.isPending || isUploading}
+                  disabled={createMutation.isPending || updateMutation.isPending || isUploading}
                   className="px-5 py-2 bg-navy-700 hover:bg-navy-800 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
-                  {createMutation.isPending ? 'Kaydediliyor...' : 'Ürünü Kataloğa Ekle'}
+                  {createMutation.isPending || updateMutation.isPending
+                    ? 'Kaydediliyor...'
+                    : editingProduct
+                      ? 'Değişiklikleri Kaydet'
+                      : 'Ürünü Kataloğa Ekle'}
                 </button>
               </div>
             </form>

@@ -68,8 +68,8 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @Roles(Role.SALES_MANAGER)
-  @ApiOperation({ summary: 'Ürün veya hizmet bilgilerini güncelle (Yalnızca Satış Müdürü)' })
+  @Roles(Role.SALES_MANAGER, Role.SALES_REP)
+  @ApiOperation({ summary: 'Ürün veya hizmet bilgilerini güncelle' })
   @ApiParam({ name: 'id', description: 'Ürün ID' })
   @ApiResponse({ status: 200, type: ProductDto })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
