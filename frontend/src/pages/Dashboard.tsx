@@ -297,29 +297,29 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* KPI 2: Açık Teklif Boru Hattı */}
+            {/* KPI 2: Açık Teklif Portföyü */}
             <div className="bg-card p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-teal-500" />
               <div className="flex items-center justify-between text-muted-foreground mb-2">
-                <span className="text-xs font-semibold">Açık Teklif Boru Hattı</span>
+                <span className="text-xs font-semibold">Açık Teklif Portföyü</span>
                 <FileClock className="w-4 h-4 text-teal-600 dark:text-teal-400" />
               </div>
 
               {displayCurrency === 'TRY' ? (
                 <>
-                  <div className="text-2xl font-extrabold text-teal-700 dark:text-teal-300">
+                  <div className="text-2xl font-extrabold text-teal-700 dark:text-teal-300 font-mono">
                     {analyticsLoading ? '...' : formatMoney(analytics?.kpis.openQuotesAmount, 'TRY')}
                   </div>
-                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 font-mono">
                     ${Number(analytics?.kpis?.openQuotesAmountUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-2xl font-extrabold text-teal-700 dark:text-teal-300">
+                  <div className="text-2xl font-extrabold text-teal-700 dark:text-teal-300 font-mono">
                     ${analyticsLoading ? '...' : Number(analytics?.kpis?.openQuotesAmountUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                   </div>
-                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 font-mono">
                     {analyticsLoading ? '...' : formatMoney(analytics?.kpis.openQuotesAmount, 'TRY')}
                   </div>
                 </>
@@ -328,7 +328,7 @@ export const DashboardPage: React.FC = () => {
               <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
                 <span className="text-muted-foreground">Karar Aşaması:</span>
                 <span className="font-semibold text-foreground">
-                  Müşteri onayı bekleyen hacim
+                  Müşteri onayı bekleyen aktif hacim
                 </span>
               </div>
             </div>
@@ -708,12 +708,18 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {((recentQuotes?.data || []) as any[]).length === 0 ? (
-                  <div className="py-6 text-center text-xs text-muted-foreground">
-                    Açık teklif bulunmamaktadır.
-                  </div>
-                ) : (
-                  ((recentQuotes?.data || []) as any[]).slice(0, 5).map((q) => (
+                {(() => {
+                  const openList = ((recentQuotes?.data || []) as any[]).filter(
+                    (q) => q.status === 'SENT' || q.status === 'DRAFT'
+                  );
+                  if (openList.length === 0) {
+                    return (
+                      <div className="py-6 text-center text-xs text-muted-foreground">
+                        Karar aşamasında bekleyen açık teklif bulunmamaktadır.
+                      </div>
+                    );
+                  }
+                  return openList.slice(0, 5).map((q) => (
                     <div key={q.id} className="py-2.5 flex items-center justify-between text-xs">
                       <div>
                         <div className="flex items-center gap-1.5">
@@ -740,14 +746,14 @@ export const DashboardPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold text-foreground block">
+                        <span className="font-bold text-foreground block font-mono">
                           {formatMoney(q.grandTotal, q.currency)}
                         </span>
                         <QuoteStatusBadge status={q.status} />
                       </div>
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </div>
           </div>

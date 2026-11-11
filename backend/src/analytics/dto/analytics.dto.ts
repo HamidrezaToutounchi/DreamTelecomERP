@@ -12,6 +12,9 @@ export class SalesByRepItemDto {
   @ApiProperty({ example: '145200.00' })
   totalSalesAmount: string;
 
+  @ApiPropertyOptional({ example: '2890.75' })
+  totalSalesAmountUsd?: string;
+
   @ApiProperty({ example: 8 })
   salesCount: number;
 }
@@ -40,8 +43,20 @@ export class QuotesByRepItemDto {
   @ApiProperty({ example: 12 })
   totalQuotesCount: number;
 
+  @ApiPropertyOptional({ example: '250000.00' })
+  totalQuoteAmountTry?: string;
+
+  @ApiPropertyOptional({ example: '4980.00' })
+  totalQuoteAmountUsd?: string;
+
   @ApiProperty({ example: 7 })
   approvedCount: number;
+
+  @ApiPropertyOptional({ example: '180000.00' })
+  approvedAmountTry?: string;
+
+  @ApiPropertyOptional({ example: '3585.00' })
+  approvedAmountUsd?: string;
 
   @ApiProperty({ example: 2 })
   rejectedCount: number;
@@ -51,6 +66,12 @@ export class QuotesByRepItemDto {
 
   @ApiProperty({ example: 1 })
   draftOrSentCount: number;
+
+  @ApiPropertyOptional({ example: '70000.00' })
+  openAmountTry?: string;
+
+  @ApiPropertyOptional({ example: '1395.00' })
+  openAmountUsd?: string;
 }
 
 export class QuotesByCompanyItemDto {

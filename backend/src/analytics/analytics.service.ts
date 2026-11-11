@@ -70,6 +70,9 @@ export class AnalyticsService {
           status: true,
           grandTotal: true,
           currency: true,
+          version: true,
+          parentQuoteId: true,
+          revisions: { select: { id: true } },
         },
       }),
       // 4. Tüm leadler
@@ -149,12 +152,17 @@ export class AnalyticsService {
       salesCount: val.count,
     }));
 
-    const salesByRep = reps.map((rep) => ({
-      repId: rep.id,
-      repName: rep.fullName,
-      totalSalesAmount: (salesByRepMap[rep.id]?.totalAmount || new Decimal(0)).toFixed(2),
-      salesCount: salesByRepMap[rep.id]?.count || 0,
-    }));
+    const salesByRep = reps.map((rep) => {
+      const salesTry = salesByRepMap[rep.id]?.totalAmount || new Decimal(0);
+      const salesUsd = salesTry.dividedBy(usdRateDec);
+      return {
+        repId: rep.id,
+        repName: rep.fullName,
+        totalSalesAmount: salesTry.toFixed(2),
+        totalSalesAmountUsd: salesUsd.toFixed(2),
+        salesCount: salesByRepMap[rep.id]?.count || 0,
+      };
+    });
 
     // Calculate Quotes by Company (Dream vs Tescom)
     const dreamCompany = companies.find((c) => c.code === 'DREAM') || companies[0];
@@ -186,61 +194,94 @@ export class AnalyticsService {
     // Calculate Quotes by Rep
     const quotesByRepMap: Record<
       string,
-      { total: number; approved: number; rejected: number; revised: number; draftOrSent: number }
+      {
+        total: number;
+        totalAmountTry: Decimal;
+        totalAmountUsd: Decimal;
+        approved: number;
+        approvedAmountTry: Decimal;
+        approvedAmountUsd: Decimal;
+        rejected: number;
+        revised: number;
+        draftOrSent: number;
+        openAmountTry: Decimal;
+        openAmountUsd: Decimal;
+      }
     > = {};
 
     let openQuotesAmountDec = new Decimal(0);
     let openQuotesAmountUsdDec = new Decimal(0);
-    let totalQuotesCount = quotes.length;
+    let totalQuotesCount = 0;
     let approvedQuotesCount = 0;
 
     for (const q of quotes) {
-      if (!quotesByRepMap[q.repId]) {
-        quotesByRepMap[q.repId] = {
-          total: 0,
-          approved: 0,
-          rejected: 0,
-          revised: 0,
-          draftOrSent: 0,
-        };
-      }
-      quotesByRepMap[q.repId].total += 1;
+      // Bir teklif; status'ü REVISED ise VEYA alt revizyonu (revisions) mevcutsa üst/tarihsel revizyondur (superseded).
+      const isSuperseded = q.status === QuoteStatus.REVISED || Boolean((q as any).revisions && (q as any).revisions.length > 0);
 
       const qTotal = DecimalUtil.toDecimal(q.grandTotal);
       const qInTry = q.currency === 'USD' ? qTotal.times(usdRateDec) : qTotal;
       const qInUsd = q.currency === 'USD' ? qTotal : qTotal.dividedBy(usdRateDec);
 
-      // Company mapping
       const targetCompanyId = q.companyId || dreamCompany?.id;
-      if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
-        companyQuotesMap[targetCompanyId].totalCount += 1;
-        companyQuotesMap[targetCompanyId].amountTry = companyQuotesMap[targetCompanyId].amountTry.plus(qInTry);
-        companyQuotesMap[targetCompanyId].amountUsd = companyQuotesMap[targetCompanyId].amountUsd.plus(qInUsd);
+
+      if (!quotesByRepMap[q.repId]) {
+        quotesByRepMap[q.repId] = {
+          total: 0,
+          totalAmountTry: new Decimal(0),
+          totalAmountUsd: new Decimal(0),
+          approved: 0,
+          approvedAmountTry: new Decimal(0),
+          approvedAmountUsd: new Decimal(0),
+          rejected: 0,
+          revised: 0,
+          draftOrSent: 0,
+          openAmountTry: new Decimal(0),
+          openAmountUsd: new Decimal(0),
+        };
       }
 
-      if (q.status === QuoteStatus.APPROVED) {
-        quotesByRepMap[q.repId].approved += 1;
-        approvedQuotesCount += 1;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
-          companyQuotesMap[targetCompanyId].approved += 1;
-        }
-      } else if (q.status === QuoteStatus.REJECTED) {
-        quotesByRepMap[q.repId].rejected += 1;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
-          companyQuotesMap[targetCompanyId].rejected += 1;
-        }
-      } else if (q.status === QuoteStatus.REVISED) {
+      if (isSuperseded) {
+        // Tarihsel revizyon: mükerrer aktif hacim yaratmaması için Açık Teklif tutarına veya aktif hacme ASLA eklenmez
         quotesByRepMap[q.repId].revised += 1;
         if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
           companyQuotesMap[targetCompanyId].revised += 1;
         }
       } else {
-        // DRAFT or SENT
-        quotesByRepMap[q.repId].draftOrSent += 1;
-        openQuotesAmountDec = openQuotesAmountDec.plus(qInTry);
-        openQuotesAmountUsdDec = openQuotesAmountUsdDec.plus(qInUsd);
+        // Yalnızca aktif / güncel teklifler hacim ve oranlara dahil edilir
+        totalQuotesCount += 1;
+        quotesByRepMap[q.repId].total += 1;
+        quotesByRepMap[q.repId].totalAmountTry = quotesByRepMap[q.repId].totalAmountTry.plus(qInTry);
+        quotesByRepMap[q.repId].totalAmountUsd = quotesByRepMap[q.repId].totalAmountUsd.plus(qInUsd);
+
         if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
-          companyQuotesMap[targetCompanyId].draftOrSent += 1;
+          companyQuotesMap[targetCompanyId].totalCount += 1;
+          companyQuotesMap[targetCompanyId].amountTry = companyQuotesMap[targetCompanyId].amountTry.plus(qInTry);
+          companyQuotesMap[targetCompanyId].amountUsd = companyQuotesMap[targetCompanyId].amountUsd.plus(qInUsd);
+        }
+
+        if (q.status === QuoteStatus.APPROVED) {
+          quotesByRepMap[q.repId].approved += 1;
+          quotesByRepMap[q.repId].approvedAmountTry = quotesByRepMap[q.repId].approvedAmountTry.plus(qInTry);
+          quotesByRepMap[q.repId].approvedAmountUsd = quotesByRepMap[q.repId].approvedAmountUsd.plus(qInUsd);
+          approvedQuotesCount += 1;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
+            companyQuotesMap[targetCompanyId].approved += 1;
+          }
+        } else if (q.status === QuoteStatus.REJECTED) {
+          quotesByRepMap[q.repId].rejected += 1;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
+            companyQuotesMap[targetCompanyId].rejected += 1;
+          }
+        } else {
+          // DRAFT or SENT (Karar Aşamasındaki Gerçek Açık Teklifler)
+          quotesByRepMap[q.repId].draftOrSent += 1;
+          quotesByRepMap[q.repId].openAmountTry = quotesByRepMap[q.repId].openAmountTry.plus(qInTry);
+          quotesByRepMap[q.repId].openAmountUsd = quotesByRepMap[q.repId].openAmountUsd.plus(qInUsd);
+          openQuotesAmountDec = openQuotesAmountDec.plus(qInTry);
+          openQuotesAmountUsdDec = openQuotesAmountUsdDec.plus(qInUsd);
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
+            companyQuotesMap[targetCompanyId].draftOrSent += 1;
+          }
         }
       }
     }
@@ -270,15 +311,33 @@ export class AnalyticsService {
     });
 
     const quotesByRep = reps.map((rep) => {
-      const q = quotesByRepMap[rep.id] || { total: 0, approved: 0, rejected: 0, revised: 0, draftOrSent: 0 };
+      const q = quotesByRepMap[rep.id] || {
+        total: 0,
+        totalAmountTry: new Decimal(0),
+        totalAmountUsd: new Decimal(0),
+        approved: 0,
+        approvedAmountTry: new Decimal(0),
+        approvedAmountUsd: new Decimal(0),
+        rejected: 0,
+        revised: 0,
+        draftOrSent: 0,
+        openAmountTry: new Decimal(0),
+        openAmountUsd: new Decimal(0),
+      };
       return {
         repId: rep.id,
         repName: rep.fullName,
         totalQuotesCount: q.total,
+        totalQuoteAmountTry: q.totalAmountTry.toFixed(2),
+        totalQuoteAmountUsd: q.totalAmountUsd.toFixed(2),
         approvedCount: q.approved,
+        approvedAmountTry: q.approvedAmountTry.toFixed(2),
+        approvedAmountUsd: q.approvedAmountUsd.toFixed(2),
         rejectedCount: q.rejected,
         revisedCount: q.revised,
         draftOrSentCount: q.draftOrSent,
+        openAmountTry: q.openAmountTry.toFixed(2),
+        openAmountUsd: q.openAmountUsd.toFixed(2),
       };
     });
 
@@ -361,6 +420,9 @@ export class AnalyticsService {
           status: true,
           grandTotal: true,
           currency: true,
+          version: true,
+          parentQuoteId: true,
+          revisions: { select: { id: true } },
         },
       }),
       this.prisma.lead.findMany({ where: leadWhere }),
@@ -421,34 +483,44 @@ export class AnalyticsService {
       };
     }
 
+    let activeQuotesCount = 0;
+
     for (const q of quotes) {
+      const isSuperseded = q.status === QuoteStatus.REVISED || Boolean((q as any).revisions && (q as any).revisions.length > 0);
       const qTotal = DecimalUtil.toDecimal(q.grandTotal);
       const qInTry = q.currency === 'USD' ? qTotal.times(usdRateDec) : qTotal;
       const qInUsd = q.currency === 'USD' ? qTotal : qTotal.dividedBy(usdRateDec);
-      totalQuoteAmountDec = totalQuoteAmountDec.plus(qInTry);
 
       const targetCompanyId = q.companyId || dreamCompany?.id;
-      if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
-        companyQuotesMap[targetCompanyId].totalCount += 1;
-        companyQuotesMap[targetCompanyId].amountTry = companyQuotesMap[targetCompanyId].amountTry.plus(qInTry);
-        companyQuotesMap[targetCompanyId].amountUsd = companyQuotesMap[targetCompanyId].amountUsd.plus(qInUsd);
-      }
 
-      if (q.status === QuoteStatus.APPROVED) {
-        approvedQuotes++;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].approved += 1;
-      } else if (q.status === QuoteStatus.REJECTED) {
-        rejectedQuotes++;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].rejected += 1;
-      } else if (q.status === QuoteStatus.REVISED) {
+      if (isSuperseded) {
         revisedQuotes++;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].revised += 1;
-      } else if (q.status === QuoteStatus.DRAFT) {
-        draftQuotes++;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].draftOrSent += 1;
-      } else if (q.status === QuoteStatus.SENT) {
-        sentQuotes++;
-        if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].draftOrSent += 1;
+        if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
+          companyQuotesMap[targetCompanyId].revised += 1;
+        }
+      } else {
+        activeQuotesCount++;
+        totalQuoteAmountDec = totalQuoteAmountDec.plus(qInTry);
+
+        if (targetCompanyId && companyQuotesMap[targetCompanyId]) {
+          companyQuotesMap[targetCompanyId].totalCount += 1;
+          companyQuotesMap[targetCompanyId].amountTry = companyQuotesMap[targetCompanyId].amountTry.plus(qInTry);
+          companyQuotesMap[targetCompanyId].amountUsd = companyQuotesMap[targetCompanyId].amountUsd.plus(qInUsd);
+        }
+
+        if (q.status === QuoteStatus.APPROVED) {
+          approvedQuotes++;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].approved += 1;
+        } else if (q.status === QuoteStatus.REJECTED) {
+          rejectedQuotes++;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].rejected += 1;
+        } else if (q.status === QuoteStatus.DRAFT) {
+          draftQuotes++;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].draftOrSent += 1;
+        } else if (q.status === QuoteStatus.SENT) {
+          sentQuotes++;
+          if (targetCompanyId && companyQuotesMap[targetCompanyId]) companyQuotesMap[targetCompanyId].draftOrSent += 1;
+        }
       }
     }
 
@@ -476,8 +548,8 @@ export class AnalyticsService {
       };
     });
 
-    const averageQuoteAmount = quotes.length > 0
-      ? totalQuoteAmountDec.dividedBy(quotes.length).toFixed(2)
+    const averageQuoteAmount = activeQuotesCount > 0
+      ? totalQuoteAmountDec.dividedBy(activeQuotesCount).toFixed(2)
       : '0.00';
 
     // 3. Lead metrics

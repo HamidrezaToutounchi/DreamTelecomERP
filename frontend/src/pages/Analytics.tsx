@@ -18,6 +18,11 @@ import {
   FileClock,
   ShieldCheck,
   Building2,
+  X,
+  ShoppingBag,
+  DollarSign,
+  BadgePercent,
+  Check,
 } from 'lucide-react';
 import {
   PieChart,
@@ -32,6 +37,7 @@ import {
   useAnalyticsControllerGetDashboardSummary,
   useUsersControllerFindAll,
   useQuotesControllerFindAll,
+  useSalesControllerFindAll,
   useCompaniesControllerFindAll,
 } from '@/api/generated';
 import { formatMoney } from '@/lib/formatters';
@@ -81,6 +87,34 @@ export const AnalyticsPage: React.FC = () => {
     status: (quoteStatus as any) || undefined,
     pageSize: 15,
   });
+
+  // 5. Temsilci Detaylı Performans / Karne Modalı State ve Sorguları
+  const [selectedRepForDetail, setSelectedRepForDetail] = useState<any | null>(null);
+  const [detailModalTab, setDetailModalTab] = useState<'quotes' | 'sales'>('quotes');
+
+  const { data: repModalQuotesData, isLoading: repModalQuotesLoading } = useQuotesControllerFindAll(
+    {
+      repId: selectedRepForDetail?.repId,
+      pageSize: 50,
+    },
+    {
+      query: {
+        enabled: Boolean(selectedRepForDetail?.repId),
+      },
+    },
+  );
+
+  const { data: repModalSalesData, isLoading: repModalSalesLoading } = useSalesControllerFindAll(
+    {
+      repId: selectedRepForDetail?.repId,
+      pageSize: 50,
+    },
+    {
+      query: {
+        enabled: Boolean(selectedRepForDetail?.repId),
+      },
+    },
+  );
 
   const reports = reportsData as any;
   const usdRate = Number(reports?.salesMetrics?.usdRate || 50.18);
@@ -173,17 +207,94 @@ export const AnalyticsPage: React.FC = () => {
       ? new Decimal(approvedQuotes).dividedBy(totalQuotes).times(100).toFixed(1)
       : '0.0';
 
+    const repUser = reps?.find((r) => r.id === rep.repId);
+
     return {
       repId: rep.repId,
       repName: rep.repName,
+      email: repUser?.email,
+      role: repUser?.role,
       totalSalesAmount: rep.totalSalesAmount,
+      totalSalesAmountUsd: (rep as any).totalSalesAmountUsd || '0.00',
       salesCount: rep.salesCount,
       totalQuotes,
       approvedQuotes,
+      sentQuotes: (quoteStat as any)?.sentCount || 0,
+      draftQuotes: (quoteStat as any)?.draftCount || 0,
+      rejectedQuotes: (quoteStat as any)?.rejectedCount || 0,
+      revisedQuotes: (quoteStat as any)?.revisedCount || 0,
+      totalQuoteAmountTry: (quoteStat as any)?.totalQuoteAmountTry || '0.00',
+      totalQuoteAmountUsd: (quoteStat as any)?.totalQuoteAmountUsd || '0.00',
+      approvedAmountTry: (quoteStat as any)?.approvedAmountTry || '0.00',
+      approvedAmountUsd: (quoteStat as any)?.approvedAmountUsd || '0.00',
+      openAmountTry: (quoteStat as any)?.openAmountTry || '0.00',
+      openAmountUsd: (quoteStat as any)?.openAmountUsd || '0.00',
       revenueSharePct,
       winRatePct,
     };
   });
+
+  // Döviz ve kur uyumlu teklif tutarı render edici
+  const renderQuoteAmount = (quote: any) => {
+    const isUsd = quote.currency === 'USD';
+    const isEur = quote.currency === 'EUR';
+    const rate = Number(quote.exchangeRate) > 0 ? Number(quote.exchangeRate) : usdRate;
+
+    if (isUsd) {
+      const tryEquivalent = Number(quote.grandTotal) * rate;
+      return (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 font-mono">
+            <span className="font-extrabold text-green-700 dark:text-green-400 text-xs sm:text-sm">
+              {formatMoney(quote.grandTotal, 'USD')}
+            </span>
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300">
+              USD ($)
+            </span>
+          </div>
+          <div className="text-[11px] text-muted-foreground font-sans">
+            ≈ {formatMoney(tryEquivalent, 'TRY')} <span className="text-[10px] text-slate-400 font-normal">({rate.toFixed(2)} ₺)</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (isEur) {
+      const tryEquivalent = Number(quote.grandTotal) * (rate * 1.08);
+      return (
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-1.5 font-mono">
+            <span className="font-extrabold text-blue-700 dark:text-blue-400 text-xs sm:text-sm">
+              {formatMoney(quote.grandTotal, 'EUR')}
+            </span>
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+              EUR (€)
+            </span>
+          </div>
+          <div className="text-[11px] text-muted-foreground font-sans">
+            ≈ {formatMoney(tryEquivalent, 'TRY')}
+          </div>
+        </div>
+      );
+    }
+
+    const usdEquivalent = Number(quote.grandTotal) / rate;
+    return (
+      <div className="space-y-0.5">
+        <div className="flex items-center gap-1.5">
+          <span className="font-extrabold text-foreground text-xs sm:text-sm">
+            {formatMoney(quote.grandTotal, 'TRY')}
+          </span>
+          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            TRY (₺)
+          </span>
+        </div>
+        <div className="text-[11px] text-muted-foreground font-mono">
+          ≈ ${usdEquivalent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -425,8 +536,10 @@ export const AnalyticsPage: React.FC = () => {
                   <FileText className="w-4 h-4 text-teal-600" />
                   Teklif Performansı
                 </h3>
-                <span className="text-[10px] text-muted-foreground">
-                  Ort. Tutar: {formatMoney(reports?.quoteMetrics?.averageQuoteAmount || '0.00')}
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  Ort. Tutar: {displayCurrency === 'TRY'
+                    ? formatMoney(reports?.quoteMetrics?.averageQuoteAmount || '0.00', 'TRY')
+                    : `$${(Number(reports?.quoteMetrics?.averageQuoteAmount || 0) / usdRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
                 </span>
               </div>
               <div className="mt-4 space-y-2.5 text-xs">
@@ -756,7 +869,7 @@ export const AnalyticsPage: React.FC = () => {
                   <span>Satış Temsilcileri Performans & Yüzde Kıyaslama Tablosu</span>
                 </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Temsilcilerin toplam cirodaki oransal payları, teklif onay başarı oranları (% Win Rate) ve satış adetleri.
+                  Temsilciye tıklayarak ya da &quot;Karne & Detay&quot; butonuna basarak hazırladığı tüm teklifleri, satışa dönüşüm oranını (% Win Rate) ve sipariş geçmişini inceleyin.
                 </p>
               </div>
               <span className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold px-2.5 py-1 rounded-lg self-start sm:self-auto">
@@ -796,12 +909,21 @@ export const AnalyticsPage: React.FC = () => {
                           }`}
                         >
                           <td className="py-3 px-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-navy-100 dark:bg-navy-900 text-navy-800 dark:text-navy-200 flex items-center justify-center font-bold text-xs uppercase">
+                            <div
+                              onClick={() => {
+                                setSelectedRepForDetail(rep);
+                                setDetailModalTab('quotes');
+                              }}
+                              className="flex items-center gap-2.5 cursor-pointer group"
+                              title="Detaylı performans karnesini açmak için tıklayın"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-navy-100 group-hover:bg-navy-200 dark:bg-navy-900 group-hover:scale-105 text-navy-800 dark:text-navy-200 flex items-center justify-center font-bold text-xs uppercase transition-all shadow-2xs">
                                 {rep.repName.slice(0, 2)}
                               </div>
                               <div>
-                                <span className="font-bold text-foreground block">{rep.repName}</span>
+                                <span className="font-bold text-foreground group-hover:text-navy-600 dark:group-hover:text-navy-300 transition-colors block">
+                                  {rep.repName}
+                                </span>
                                 {isSelected && (
                                   <span className="text-[10px] text-navy-600 dark:text-navy-400 font-semibold">
                                     (Filtrelendi)
@@ -870,24 +992,39 @@ export const AnalyticsPage: React.FC = () => {
                           </td>
 
                           <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={() => {
-                                if (isSelected) {
-                                  setRepId('');
-                                } else {
-                                  setRepId(rep.repId);
-                                  // Teklifler tablosuna yumuşak kaydır
-                                  document.getElementById('rep-quotes-section')?.scrollIntoView({ behavior: 'smooth' });
-                                }
-                              }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                isSelected
-                                  ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 hover:bg-red-200'
-                                  : 'bg-navy-50 text-navy-700 dark:bg-navy-950 dark:text-navy-300 hover:bg-navy-100'
-                              }`}
-                            >
-                              {isSelected ? 'Filtreyi Kaldır' : 'Tekliflerini Gör'}
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRepForDetail(rep);
+                                  setDetailModalTab('quotes');
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-navy-600 hover:bg-navy-700 text-white shadow-2xs transition-all cursor-pointer"
+                                title="Kullanıcının detaylı teklif ve satış performans karnesini aç"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Karne & Detay</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setRepId('');
+                                  } else {
+                                    setRepId(rep.repId);
+                                    document.getElementById('rep-quotes-section')?.scrollIntoView({ behavior: 'smooth' });
+                                  }
+                                }}
+                                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 hover:bg-red-200'
+                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'
+                                }`}
+                              >
+                                {isSelected ? 'Filtreyi Kaldır' : 'Teklifleri Filtrele'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -996,10 +1133,8 @@ export const AnalyticsPage: React.FC = () => {
                         </td>
 
                         <td className="py-3 px-4">
-                          <span className="font-extrabold text-foreground">
-                            {formatMoney(quote.grandTotal)}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground block">
+                          {renderQuoteAmount(quote)}
+                          <span className="text-[10px] text-muted-foreground block mt-0.5">
                             KDV Dahil ({quote.items?.length || 0} Kalem)
                           </span>
                         </td>
@@ -1032,6 +1167,355 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* ===================== 5. TEMSİLCİ DETAYLI PERFORMANS & KARNE MODALI ===================== */}
+      {selectedRepForDetail && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-card w-full max-w-5xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+            {/* Modal Üst Başlık */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-navy-600 text-white flex items-center justify-center font-black text-lg uppercase shadow-sm">
+                  {selectedRepForDetail.repName.slice(0, 2)}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-black text-foreground">{selectedRepForDetail.repName}</h2>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-navy-100 text-navy-800 dark:bg-navy-900/80 dark:text-navy-200 border border-navy-200/50">
+                      {selectedRepForDetail.role === 'SALES_MANAGER' ? 'Satış Müdürü' : 'Satış Temsilcisi'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {selectedRepForDetail.email || 'Kullanıcı'} • Bireysel Teklif & Satış Performans Karnesi
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRepForDetail(null)}
+                className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Gövde (Scrollable) */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
+              {/* 4 Ana Metrik Kartı */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. Toplam Teklif */}
+                <div className="bg-slate-50/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center justify-between text-muted-foreground mb-1.5">
+                    <span className="text-xs font-semibold">Toplam Hazırlanan Teklif</span>
+                    <FileText className="w-4 h-4 text-navy-600" />
+                  </div>
+                  <div className="text-xl font-black text-foreground">
+                    {selectedRepForDetail.totalQuotes} adet
+                  </div>
+                  <div className="text-xs font-bold text-navy-700 dark:text-navy-300 mt-1">
+                    {formatMoney(selectedRepForDetail.totalQuoteAmountTry, 'TRY')}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground font-mono">
+                    ${Number(selectedRepForDetail.totalQuoteAmountUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                  </div>
+                </div>
+
+                {/* 2. Onaylanan / Kazanılan Satış */}
+                <div className="bg-green-50/60 dark:bg-green-950/20 p-4 rounded-xl border border-green-200/60 dark:border-green-900/40">
+                  <div className="flex items-center justify-between text-green-700 dark:text-green-400 mb-1.5">
+                    <span className="text-xs font-semibold">Satışa Dönüşen Teklif & Ciro</span>
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="text-xl font-black text-green-700 dark:text-green-400">
+                    {selectedRepForDetail.approvedQuotes} onay ({selectedRepForDetail.salesCount} satış)
+                  </div>
+                  <div className="text-xs font-bold text-green-800 dark:text-green-300 mt-1">
+                    {formatMoney(selectedRepForDetail.totalSalesAmount, 'TRY')}
+                  </div>
+                  <div className="text-[10px] text-green-600 dark:text-green-400/80 font-mono">
+                    ${Number(selectedRepForDetail.totalSalesAmountUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                  </div>
+                </div>
+
+                {/* 3. Win Rate Başarı Oranı */}
+                <div className="bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40">
+                  <div className="flex items-center justify-between text-amber-700 dark:text-amber-400 mb-1.5">
+                    <span className="text-xs font-semibold">Başarı Oranı (% Win Rate)</span>
+                    <TrendingUp className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="text-xl font-black text-amber-700 dark:text-amber-400">
+                    %{selectedRepForDetail.winRatePct}
+                  </div>
+                  <div className="text-xs font-medium text-amber-800 dark:text-amber-300 mt-1">
+                    Ciro Katkı Payı: %{selectedRepForDetail.revenueSharePct}
+                  </div>
+                  <div className="w-full h-1.5 bg-amber-200 dark:bg-amber-900/60 rounded-full mt-2 overflow-hidden">
+                    <div
+                      className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(Number(selectedRepForDetail.winRatePct), 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Açık Portföy (Karar Aşamasında) */}
+                <div className="bg-teal-50/60 dark:bg-teal-950/20 p-4 rounded-xl border border-teal-200/60 dark:border-teal-900/40">
+                  <div className="flex items-center justify-between text-teal-700 dark:text-teal-400 mb-1.5">
+                    <span className="text-xs font-semibold">Açık / Bekleyen Portföy</span>
+                    <Clock className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div className="text-xl font-black text-teal-700 dark:text-teal-400">
+                    {(selectedRepForDetail.sentQuotes || 0) + (selectedRepForDetail.draftQuotes || 0)} adet
+                  </div>
+                  <div className="text-xs font-bold text-teal-800 dark:text-teal-300 mt-1">
+                    {formatMoney(selectedRepForDetail.openAmountTry, 'TRY')}
+                  </div>
+                  <div className="text-[10px] text-teal-600 dark:text-teal-400/80 font-mono">
+                    ${Number(selectedRepForDetail.openAmountUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                  </div>
+                </div>
+              </div>
+
+              {/* Sekmeler: Teklifler / Satışlar */}
+              <div className="border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDetailModalTab('quotes')}
+                    className={cn(
+                      'px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2',
+                      detailModalTab === 'quotes'
+                        ? 'border-navy-600 text-navy-700 dark:text-navy-300 bg-navy-50/40 dark:bg-navy-950/30'
+                        : 'border-transparent text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Hazırladığı Teklifler ({repModalQuotesData?.data?.length || 0})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDetailModalTab('sales')}
+                    className={cn(
+                      'px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2',
+                      detailModalTab === 'sales'
+                        ? 'border-green-600 text-green-700 dark:text-green-300 bg-green-50/40 dark:bg-green-950/30'
+                        : 'border-transparent text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Satış Geçmişi ({repModalSalesData?.data?.length || 0})</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sekme 1: Teklifler Tablosu */}
+              {detailModalTab === 'quotes' && (
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    {repModalQuotesLoading ? (
+                      <div className="py-12 text-center text-xs text-muted-foreground">
+                        Teklifler yükleniyor...
+                      </div>
+                    ) : (repModalQuotesData?.data || []).length === 0 ? (
+                      <div className="py-12 text-center text-xs text-muted-foreground">
+                        Bu temsilciye ait kayıtlı teklif bulunamadı.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/40 text-muted-foreground font-semibold">
+                            <th className="py-3 px-4">TEKLİF NO</th>
+                            <th className="py-3 px-4">MÜŞTERİ</th>
+                            <th className="py-3 px-4">GENEL TOPLAM</th>
+                            <th className="py-3 px-4 text-center">DURUM</th>
+                            <th className="py-3 px-4">TARİH</th>
+                            <th className="py-3 px-4 text-right">PDF</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {((repModalQuotesData?.data || []) as any[]).map((quote) => (
+                            <tr key={quote.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-900/40">
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-mono font-bold text-navy-700 dark:text-navy-300">
+                                      {quote.quoteNumber}
+                                    </span>
+                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-semibold text-muted-foreground">
+                                      v{quote.version}
+                                    </span>
+                                  </div>
+                                  <span
+                                    className={cn(
+                                      'text-[9px] font-extrabold px-1.5 py-0.5 rounded border inline-block',
+                                      quote.company?.code === 'TESCOM' || quote.quoteNumber?.startsWith('TS-')
+                                        ? 'bg-sky-50 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300'
+                                        : 'bg-navy-50 text-navy-800 border-navy-200 dark:bg-navy-950/40 dark:text-navy-300',
+                                    )}
+                                  >
+                                    {quote.company?.code === 'TESCOM' || quote.quoteNumber?.startsWith('TS-')
+                                      ? 'Tescom Telecom'
+                                      : 'Dream Telecom'}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="font-bold text-foreground block">
+                                  {quote.customer?.name || 'Müşteri'}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {quote.customer?.city || 'Şehir belirtilmemiş'}
+                                </span>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                {renderQuoteAmount(quote)}
+                              </td>
+
+                              <td className="py-3 px-4 text-center">
+                                <QuoteStatusBadge status={quote.status as any} />
+                              </td>
+
+                              <td className="py-3 px-4 text-muted-foreground font-mono">
+                                {quote.createdAt ? new Date(quote.createdAt).toLocaleDateString('tr-TR') : '-'}
+                              </td>
+
+                              <td className="py-3 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => downloadQuotePdf(quote.id, quote.quoteNumber)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold bg-navy-50 text-navy-700 dark:bg-navy-950 dark:text-navy-300 hover:bg-navy-100 rounded-lg transition-colors cursor-pointer"
+                                  title="Resmi PDF İndir"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span>PDF İndir</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Sekme 2: Satışlar Tablosu */}
+              {detailModalTab === 'sales' && (
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    {repModalSalesLoading ? (
+                      <div className="py-12 text-center text-xs text-muted-foreground">
+                        Satış geçmişi yükleniyor...
+                      </div>
+                    ) : (repModalSalesData?.data || []).length === 0 ? (
+                      <div className="py-12 text-center text-xs text-muted-foreground">
+                        Bu temsilciye ait gerçekleşmiş satış kaydı bulunamadı.
+                      </div>
+                    ) : (
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/40 text-muted-foreground font-semibold">
+                            <th className="py-3 px-4">SATIŞ DETAYI</th>
+                            <th className="py-3 px-4">MÜŞTERİ</th>
+                            <th className="py-3 px-4">SATIŞ TUTARI</th>
+                            <th className="py-3 px-4 text-center">FATURA DURUMU</th>
+                            <th className="py-3 px-4 text-center">ÖDEME DURUMU</th>
+                            <th className="py-3 px-4 text-right">TARİH</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {((repModalSalesData?.data || []) as any[]).map((sale) => (
+                            <tr key={sale.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-900/40">
+                              <td className="py-3 px-4">
+                                <div className="space-y-0.5">
+                                  <span className="font-bold text-foreground block">
+                                    {sale.soldItemsSummary || 'Satış İşlemi'}
+                                  </span>
+                                  {sale.quote?.quoteNumber && (
+                                    <span className="text-[10px] font-mono text-muted-foreground">
+                                      Teklif: {sale.quote.quoteNumber}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-4">
+                                <span className="font-bold text-foreground block">
+                                  {sale.customer?.name || 'Müşteri'}
+                                </span>
+                              </td>
+
+                              <td className="py-3 px-4 font-bold">
+                                {sale.currency === 'USD' ? (
+                                  <>
+                                    <span className="text-green-700 dark:text-green-400 font-mono block">
+                                      {formatMoney(sale.totalAmount, 'USD')}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground block font-normal">
+                                      ≈ {formatMoney(Number(sale.totalAmount) * usdRate, 'TRY')}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-foreground block">
+                                      {formatMoney(sale.totalAmount, 'TRY')}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground block font-mono font-normal">
+                                      ≈ ${(Number(sale.totalAmount) / usdRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                                    </span>
+                                  </>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-4 text-center">
+                                {sale.isInvoiced ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300">
+                                    <Check className="w-3 h-3" />
+                                    Faturalandı
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                                    <Clock className="w-3 h-3" />
+                                    Fatura Bekliyor
+                                  </span>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-4 text-center">
+                                <span className="text-[11px] font-semibold text-muted-foreground">
+                                  {sale.paymentStatus || 'COMPLETED'}
+                                </span>
+                              </td>
+
+                              <td className="py-3 px-4 text-right text-muted-foreground font-mono">
+                                {sale.createdAt ? new Date(sale.createdAt).toLocaleDateString('tr-TR') : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Alt Kısım */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedRepForDetail(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-foreground transition-all cursor-pointer"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

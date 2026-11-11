@@ -239,6 +239,10 @@ export class QuotesService {
 
     this.checkRepAccess(quote, user);
 
+    if (quote.status === QuoteStatus.REVISED) {
+      throw new BadRequestException('Revize edilmiş eski bir teklifin durumu değiştirilemez.');
+    }
+
     if (dto.status === QuoteStatus.REJECTED && !dto.rejectionReason) {
       throw new BadRequestException('Teklif reddedilirken ret sebebi girilmesi zorunludur.');
     }
