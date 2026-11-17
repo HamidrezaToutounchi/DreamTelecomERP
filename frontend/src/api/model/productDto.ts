@@ -12,6 +12,7 @@ import type { ProductDtoCode } from './productDtoCode';
 import type { ProductDtoDescription } from './productDtoDescription';
 import type { ProductDtoCurrency } from './productDtoCurrency';
 import type { ProductDtoImageUrl } from './productDtoImageUrl';
+import type { ProductBarcodeDto } from './productBarcodeDto';
 
 export interface ProductDto {
   id: string;
@@ -25,6 +26,14 @@ export interface ProductDto {
   currency: ProductDtoCurrency;
   taxRate: number;
   imageUrl?: ProductDtoImageUrl;
+  trackSerial: boolean;
+  trackMac: boolean;
+  macRequired: boolean;
+  customerWarrantyMonths: number;
+  supplierWarrantyMonths: number;
+  minStockLevel: string;
+  unit: string;
+  barcodes?: ProductBarcodeDto[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

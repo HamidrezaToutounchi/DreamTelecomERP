@@ -63,6 +63,63 @@ enum ProductType {
   SERVICE
 }
 
+enum AppModule {
+  // CRM Modülleri
+  LEADS
+  CUSTOMERS
+  QUOTES
+  SALES
+  PRODUCTS
+  REPORTS
+  // Stok & Sevkiyat Modülleri
+  STOCK_VIEW
+  STOCK_ENTRY
+  STOCK_EXIT
+  STOCK_ADJUSTMENT
+  WAREHOUSES
+  SUPPLIERS
+  FAULTS
+  STOCK_REPORTS
+  // Yönetim Modülleri
+  USERS
+  ROLES
+  APPROVAL_SETTINGS
+  COMPANIES
+  CATEGORIES
+  AUDIT_LOGS
+}
+
+model AppRole {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("app_roles")
+}
+
+model RolePermission {
+  id        String    @id @default(uuid())
+  roleId    String
+  role      AppRole   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  module    AppModule
+  canView   Boolean   @default(false)
+  canCreate Boolean   @default(false)
+  canEdit   Boolean   @default(false)
+  canDelete Boolean   @default(false)
+  canCancel Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([roleId, module])
+  @@map("role_permissions")
+}
+
 model User {
   id                String       @id @default(uuid())
   email             String       @unique
@@ -70,6 +127,9 @@ model User {
   fullName          String
   phone             String?
   role              Role         @default(SALES_REP)
+  isSuperAdmin      Boolean      @default(false)
+  appRoleId         String?
+  appRole           AppRole?     @relation(fields: [appRoleId], references: [id], onDelete: SetNull)
   isActive          Boolean      @default(true)
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -82,6 +142,15 @@ model User {
   quotes            Quote[]
   sales             Sale[]
   auditLogs         AuditLog[]
+
+  // Stok & Arıza İlişkileri
+  stockEntriesCreated   StockEntry[]        @relation("StockEntryCreatedBy")
+  stockEntriesCancelled StockEntry[]        @relation("StockEntryCancelledBy")
+  stockExitsCreated     StockExit[]         @relation("StockExitCreatedBy")
+  stockExitsCancelled   StockExit[]         @relation("StockExitCancelledBy")
+  stockExitApprovals    StockExitApproval[]
+  stockMovementsCreated StockMovement[]     @relation("StockMovementCreatedBy")
+  faultRecordsCreated   FaultRecord[]       @relation("FaultCreatedBy")
 
   @@map("users")
 }
@@ -138,9 +207,12 @@ model Customer {
   assignedTo    User              @relation("AssignedCustomers", fields: [assignedToId], references: [id])
   createdById   String
   createdBy     User              @relation("CreatedCustomers", fields: [createdById], references: [id])
+  source        String?           @default("CRM")
   interactions  Interaction[]
   quotes        Quote[]
   sales         Sale[]
+  stockExits    StockExit[]
+  faultRecords  FaultRecord[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -178,6 +250,23 @@ model Product {
   taxRate     Int         @default(20)
   imageUrl    String?
   isActive    Boolean     @default(true)
+
+  // Stok & Garanti Alanları
+  trackSerial             Boolean          @default(false)
+  trackMac                Boolean          @default(false)
+  macRequired             Boolean          @default(false)
+  customerWarrantyMonths  Int              @default(24)
+  supplierWarrantyMonths  Int              @default(24)
+  minStockLevel           Decimal          @default(0) @db.Decimal(15, 2)
+  unit                    String           @default("ADET")
+
+  barcodes                ProductBarcode[]
+  stockLevels             StockLevel[]
+  stockEntryItems         StockEntryItem[]
+  stockExitItems          StockExitItem[]
+  serials                 SerialNumber[]
+  movements               StockMovement[]
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -305,4 +394,348 @@ model AuditLog {
   @@index([action])
   @@index([entity])
   @@map("audit_logs")
+}
+
+// ==========================================
+// STOK & ARIZA MODÜLÜ ENUM VE MODELLERİ
+// ==========================================
+
+model Warehouse {
+  id            String          @id @default(uuid())
+  code          String          @unique
+  name          String
+  address       String?         @db.Text
+  contactPerson String?
+  contactPhone  String?
+  isActive      Boolean         @default(true)
+  isDefault     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  stockLevels     StockLevel[]
+  stockEntries    StockEntry[]
+  stockExits      StockExit[]
+  sourceMovements StockMovement[] @relation("SourceWarehouse")
+  targetMovements StockMovement[] @relation("TargetWarehouse")
+
+  @@map("warehouses")
+}
+
+model Supplier {
+  id            String          @id @default(uuid())
+  code          String          @unique
+  name          String
+  taxNumber     String?
+  taxOffice     String?
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?         @db.Text
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  stockEntries  StockEntry[]
+  serials       SerialNumber[]
+
+  @@map("suppliers")
+}
+
+model ProductBarcode {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  barcode   String   @unique
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("product_barcodes")
+}
+
+model StockLevel {
+  id               String    @id @default(uuid())
+  productId        String
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouseId      String
+  warehouse        Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  quantity         Decimal   @default(0) @db.Decimal(15, 2)
+  reservedQuantity Decimal   @default(0) @db.Decimal(15, 2)
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([productId, warehouseId])
+  @@map("stock_levels")
+}
+
+enum StockEntryType {
+  PURCHASE      // Satın Alma Girişi
+  TRANSFER_IN   // Depolar Arası Transfer Girişi
+  RETURN_IN     // Müşteri İadesi
+  COUNT_SURPLUS // Sayım Fazlası
+  OTHER         // Diğer
+}
+
+enum StockEntryStatus {
+  COMPLETED
+  CANCELLED
+}
+
+model StockEntry {
+  id            String           @id @default(uuid())
+  entryNumber   String           @unique // GR-YYYY-NNNN
+  type          StockEntryType   @default(PURCHASE)
+  status        StockEntryStatus @default(COMPLETED)
+  warehouseId   String
+  warehouse     Warehouse        @relation(fields: [warehouseId], references: [id])
+  supplierId    String?
+  supplier      Supplier?        @relation(fields: [supplierId], references: [id])
+  invoiceNumber String?
+  waybillNumber String?
+  entryDate     DateTime         @default(now())
+  description   String?          @db.Text
+  documentUrl   String?
+  documentName  String?
+  createdById   String
+  createdBy     User             @relation("StockEntryCreatedBy", fields: [createdById], references: [id])
+  cancelledAt   DateTime?
+  cancelledById String?
+  cancelledBy   User?            @relation("StockEntryCancelledBy", fields: [cancelledById], references: [id])
+  cancelReason  String?          @db.Text
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  items         StockEntryItem[]
+  serials       SerialNumber[]
+
+  @@map("stock_entries")
+}
+
+model StockEntryItem {
+  id           String     @id @default(uuid())
+  stockEntryId String
+  stockEntry   StockEntry @relation(fields: [stockEntryId], references: [id], onDelete: Restrict)
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity     Decimal    @db.Decimal(15, 2)
+  unitPrice    Decimal    @default(0) @db.Decimal(15, 2)
+  currency     Currency   @default(TRY)
+  createdAt    DateTime   @default(now())
+
+  @@map("stock_entry_items")
+}
+
+enum StockExitType {
+  SALE_SHIPMENT   // Müşteri Satış Sevkiyatı
+  TRANSFER_OUT    // Depolar Arası Transfer Çıkışı
+  RETURN_SUPPLIER // Tedarikçiye İade
+  COUNT_DEFICIT   // Sayım Eksiği (Fire / Zayi)
+  SCRAP           // Hurda
+  FAULT_SEND      // Arıza İçin Servise / Müşteriye Gönderim
+  OTHER           // Diğer
+}
+
+enum StockExitStatus {
+  PENDING_APPROVAL // Onay Bekliyor
+  APPROVED         // Onaylandı (Sevk Edilebilir)
+  SHIPPED          // Sevk Edildi
+  CANCELLED        // İptal Edildi
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  BYPASSED
+}
+
+model StockExit {
+  id              String            @id @default(uuid())
+  exitNumber      String            @unique // CK-YYYY-NNNN
+  type            StockExitType     @default(SALE_SHIPMENT)
+  status          StockExitStatus   @default(PENDING_APPROVAL)
+  warehouseId     String
+  warehouse       Warehouse         @relation(fields: [warehouseId], references: [id])
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  waybillNumber   String?
+  carrierCompany  String?
+  trackingNumber  String?
+  recipientPerson String?
+  recipientPhone  String?
+  deliveryAddress String?           @db.Text
+  exitDate        DateTime          @default(now())
+  shippedAt       DateTime?
+  description     String?           @db.Text
+  documentUrl     String?
+  documentName    String?
+  createdById     String
+  createdBy       User              @relation("StockExitCreatedBy", fields: [createdById], references: [id])
+  cancelledAt     DateTime?
+  cancelledById   String?
+  cancelledBy     User?             @relation("StockExitCancelledBy", fields: [cancelledById], references: [id])
+  cancelReason    String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  items           StockExitItem[]
+  approvals       StockExitApproval[]
+  serials         SerialNumber[]
+
+  @@map("stock_exits")
+}
+
+model StockExitItem {
+  id          String    @id @default(uuid())
+  stockExitId String
+  stockExit   StockExit @relation(fields: [stockExitId], references: [id], onDelete: Restrict)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity    Decimal   @db.Decimal(15, 2)
+  unitPrice   Decimal   @default(0) @db.Decimal(15, 2)
+  currency    Currency  @default(TRY)
+  createdAt   DateTime  @default(now())
+
+  @@map("stock_exit_items")
+}
+
+model StockExitApproval {
+  id          String         @id @default(uuid())
+  stockExitId String
+  stockExit   StockExit      @relation(fields: [stockExitId], references: [id], onDelete: Cascade)
+  step        Int            // 1, 2, 3 ...
+  roleId      String?
+  approverId  String?
+  approver    User?          @relation(fields: [approverId], references: [id])
+  status      ApprovalStatus @default(PENDING)
+  actionDate  DateTime?
+  note        String?        @db.Text
+  createdAt   DateTime       @default(now())
+
+  @@unique([stockExitId, step])
+  @@map("stock_exit_approvals")
+}
+
+model ApprovalSetting {
+  id          String   @id @default(uuid())
+  step        Int      @unique
+  name        String
+  roleId      String?
+  userId      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("approval_settings")
+}
+
+enum SerialStatus {
+  IN_STOCK
+  RESERVED
+  SHIPPED
+  IN_FAULT
+  SCRAPPED
+  RETURNED
+}
+
+model SerialNumber {
+  id                  String        @id @default(uuid())
+  serial              String        @unique
+  macAddress          String?       @unique
+  productId           String
+  product             Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  status              SerialStatus  @default(IN_STOCK)
+  warehouseId         String?
+  supplierId          String?
+  supplier            Supplier?     @relation(fields: [supplierId], references: [id])
+  stockEntryId        String?
+  stockEntry          StockEntry?   @relation(fields: [stockEntryId], references: [id])
+  stockExitId         String?
+  stockExit           StockExit?    @relation(fields: [stockExitId], references: [id])
+  currentCustomerId   String?
+  customerWarrantyEnd DateTime?
+  supplierWarrantyEnd DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  movements           StockMovement[]
+  faults              FaultRecord[]
+
+  @@map("serial_numbers")
+}
+
+enum StockMovementType {
+  ENTRY
+  EXIT
+  TRANSFER
+  ADJUSTMENT
+  CANCEL_REVERSAL
+}
+
+model StockMovement {
+  id                String            @id @default(uuid())
+  type              StockMovementType
+  productId         String
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  serialId          String?
+  serial            SerialNumber?     @relation(fields: [serialId], references: [id])
+  sourceWarehouseId String?
+  sourceWarehouse   Warehouse?        @relation("SourceWarehouse", fields: [sourceWarehouseId], references: [id])
+  targetWarehouseId String?
+  targetWarehouse   Warehouse?        @relation("TargetWarehouse", fields: [targetWarehouseId], references: [id])
+  quantity          Decimal           @db.Decimal(15, 2)
+  previousStock     Decimal           @db.Decimal(15, 2)
+  newStock          Decimal           @db.Decimal(15, 2)
+  referenceType     String            // 'STOCK_ENTRY', 'STOCK_EXIT', 'FAULT', 'ADJUSTMENT'
+  referenceId       String
+  createdById       String
+  createdBy         User              @relation("StockMovementCreatedBy", fields: [createdById], references: [id])
+  description       String?           @db.Text
+  createdAt         DateTime          @default(now())
+
+  @@map("stock_movements")
+}
+
+enum FaultStatus {
+  RECEIVED
+  IN_INSPECTION
+  WAITING_PARTS
+  SENT_TO_SUPPLIER
+  RESOLVED
+  REPLACED
+  SCRAPPED
+  RETURNED_TO_CUSTOMER
+}
+
+enum FaultPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model FaultRecord {
+  id                    String        @id @default(uuid())
+  faultNumber           String        @unique // ARZ-YYYY-NNNN
+  serialId              String
+  serial                SerialNumber  @relation(fields: [serialId], references: [id])
+  customerId            String?
+  customer              Customer?     @relation(fields: [customerId], references: [id])
+  contactPerson         String?
+  contactPhone          String?
+  reportedProblem       String        @db.Text
+  status                FaultStatus   @default(RECEIVED)
+  priority              FaultPriority @default(MEDIUM)
+  underCustomerWarranty Boolean       @default(false)
+  underSupplierWarranty Boolean       @default(false)
+  technicianNotes       String?       @db.Text
+  resolutionSummary     String?       @db.Text
+  receivedDate          DateTime      @default(now())
+  resolvedDate          DateTime?
+  createdById           String
+  createdBy             User          @relation("FaultCreatedBy", fields: [createdById], references: [id])
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  receiptUrl            String?
+
+  @@map("fault_records")
 }

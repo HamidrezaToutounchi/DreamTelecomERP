@@ -145,6 +145,24 @@ export class DashboardKpiDto {
 
   @ApiProperty({ example: '31.25%', description: 'Lead Müşteriye Dönüşüm Oranı' })
   leadConversionRate: string;
+
+  @ApiPropertyOptional({ example: '1500000.00', description: 'Depodaki Toplam Stok Envanter Değeri (TRY)' })
+  totalStockValueTry?: string;
+
+  @ApiPropertyOptional({ example: '29890.00', description: 'Depodaki Toplam Stok Envanter Değeri (USD)' })
+  totalStockValueUsd?: string;
+
+  @ApiPropertyOptional({ example: 450, description: 'Depolardaki Toplam Fiziksel Ürün / Kalem Adedi' })
+  totalStockQuantity?: number;
+
+  @ApiPropertyOptional({ example: 15, description: 'Stokta Bulunan Çeşit Ürün Sayısı' })
+  totalStockProductsCount?: number;
+
+  @ApiPropertyOptional({ example: 2, description: 'Yönetici Onayı Bekleyen Sevkiyat / Kargo Fişi Sayısı' })
+  pendingExitsCount?: number;
+
+  @ApiPropertyOptional({ example: 3, description: 'Kritik Seviyenin Altındaki Ürün Sayısı' })
+  criticalStockCount?: number;
 }
 
 export class DashboardSummaryQueryDto {

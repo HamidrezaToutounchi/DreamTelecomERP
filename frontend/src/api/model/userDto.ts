@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { UserDtoRole } from './userDtoRole';
+import type { UserDtoAppRoleId } from './userDtoAppRoleId';
+import type { UserDtoAppRole } from './userDtoAppRole';
 
 export interface UserDto {
   id: string;
@@ -13,6 +15,9 @@ export interface UserDto {
   fullName: string;
   phone?: string;
   role: UserDtoRole;
+  isSuperAdmin?: boolean;
+  appRoleId?: UserDtoAppRoleId;
+  appRole?: UserDtoAppRole;
   isActive: boolean;
   createdAt: string;
 }

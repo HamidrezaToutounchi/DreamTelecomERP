@@ -78,7 +78,17 @@ export class ProductsService {
         currency: dto.currency,
         taxRate: dto.taxRate ?? 20,
         imageUrl: dto.imageUrl || null,
+        trackSerial: dto.trackSerial ?? false,
+        trackMac: dto.trackMac ?? false,
+        macRequired: dto.macRequired ?? false,
+        customerWarrantyMonths: dto.customerWarrantyMonths ?? 24,
+        supplierWarrantyMonths: dto.supplierWarrantyMonths ?? 24,
+        minStockLevel: dto.minStockLevel ? DecimalUtil.formatMoney(dto.minStockLevel) : '0',
+        unit: dto.unit || 'ADET',
         isActive: true,
+      },
+      include: {
+        barcodes: true,
       },
     });
   }
@@ -119,6 +129,9 @@ export class ProductsService {
         skip,
         take: pageSize,
         orderBy: { [sortBy]: sortOrder },
+        include: {
+          barcodes: true,
+        },
       }),
     ]);
 
@@ -134,7 +147,15 @@ export class ProductsService {
   }
 
   async findOne(id: string) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        barcodes: true,
+        stockLevels: {
+          include: { warehouse: true },
+        },
+      },
+    });
     if (!product) {
       throw new NotFoundException('Ürün veya hizmet bulunamadı.');
     }
@@ -187,6 +208,16 @@ export class ProductsService {
         currency: dto.currency ?? product.currency,
         taxRate: dto.taxRate ?? product.taxRate,
         imageUrl: dto.imageUrl !== undefined ? dto.imageUrl : product.imageUrl,
+        trackSerial: dto.trackSerial !== undefined ? dto.trackSerial : product.trackSerial,
+        trackMac: dto.trackMac !== undefined ? dto.trackMac : product.trackMac,
+        macRequired: dto.macRequired !== undefined ? dto.macRequired : product.macRequired,
+        customerWarrantyMonths: dto.customerWarrantyMonths !== undefined ? dto.customerWarrantyMonths : product.customerWarrantyMonths,
+        supplierWarrantyMonths: dto.supplierWarrantyMonths !== undefined ? dto.supplierWarrantyMonths : product.supplierWarrantyMonths,
+        minStockLevel: dto.minStockLevel ? DecimalUtil.formatMoney(dto.minStockLevel) : product.minStockLevel,
+        unit: dto.unit !== undefined ? dto.unit : product.unit,
+      },
+      include: {
+        barcodes: true,
       },
     });
   }
@@ -271,5 +302,86 @@ export class ProductsService {
       totalRevenue: stat.totalRevenueDec.toFixed(2),
       salesCount: stat.salesCount,
     })).sort((a, b) => Number(b.totalRevenue) - Number(a.totalRevenue));
+  }
+
+  /**
+   * Ürüne Yeni Barkod Ekle
+   */
+  async addBarcode(productId: string, barcodeStr: string, isDefault: boolean = false) {
+    const product = await this.findOne(productId);
+    const cleanBarcode = barcodeStr.trim();
+    if (!cleanBarcode) {
+      throw new BadRequestException('Geçerli bir barkod giriniz.');
+    }
+
+    const existing = await this.prisma.productBarcode.findUnique({
+      where: { barcode: cleanBarcode },
+      include: { product: true },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        `"${cleanBarcode}" barkodu zaten "${existing.product.name}" isimli ürüne tanımlı.`,
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (isDefault) {
+        await tx.productBarcode.updateMany({
+          where: { productId, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
+
+      return tx.productBarcode.create({
+        data: {
+          productId,
+          barcode: cleanBarcode,
+          isDefault,
+        },
+      });
+    });
+  }
+
+  /**
+   * Barkodu Sil
+   */
+  async removeBarcode(productId: string, barcodeId: string) {
+    const barcode = await this.prisma.productBarcode.findFirst({
+      where: { id: barcodeId, productId },
+    });
+    if (!barcode) {
+      throw new NotFoundException('Barkod bulunamadı.');
+    }
+
+    await this.prisma.productBarcode.delete({
+      where: { id: barcodeId },
+    });
+
+    return { success: true };
+  }
+
+  /**
+   * Varsayılan Barkod Olarak Belirle
+   */
+  async setDefaultBarcode(productId: string, barcodeId: string) {
+    const barcode = await this.prisma.productBarcode.findFirst({
+      where: { id: barcodeId, productId },
+    });
+    if (!barcode) {
+      throw new NotFoundException('Barkod bulunamadı.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.productBarcode.updateMany({
+        where: { productId, isDefault: true },
+        data: { isDefault: false },
+      });
+
+      return tx.productBarcode.update({
+        where: { id: barcodeId },
+        data: { isDefault: true },
+      });
+    });
   }
 }

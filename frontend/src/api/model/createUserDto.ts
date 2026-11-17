@@ -13,4 +13,9 @@ export interface CreateUserDto {
   phone?: string;
   password: string;
   role: CreateUserDtoRole;
+  /**
+   * Atanacak sistem / özel rol ID
+   * @nullable
+   */
+  appRoleId?: string | null;
 }

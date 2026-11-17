@@ -19,6 +19,19 @@ import {
   Activity,
   Building2,
   User as UserIcon,
+  ShieldCheck,
+  Warehouse,
+  Truck,
+  PackagePlus,
+  PackageMinus,
+  Wrench,
+  ClipboardList,
+  CheckSquare,
+  ChevronDown,
+  ChevronRight,
+  Briefcase,
+  Boxes,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/components/theme/ThemeProvider';
@@ -29,29 +42,64 @@ import { ExchangeRateBadge } from '@/components/common/ExchangeRateBadge';
 import { cn } from '@/lib/utils';
 
 export const AppLayout: React.FC = () => {
-  const { user, logout, isManager } = useAuth();
+  const { user, logout, isManager, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Ana Sayfa', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Potansiyel Müşteriler (Leads)', href: '/leads', icon: Target },
-    { name: 'Müşteriler', href: '/customers', icon: Users },
-    { name: 'Teklif Yönetimi', href: '/quotes', icon: FileSpreadsheet },
-    { name: 'Satış & Faturalar', href: '/sales', icon: BadgeDollarSign },
-    { name: 'Ürün & Hizmetler', href: '/products', icon: Package },
-    ...(isManager
-      ? [
-          { name: 'Yönetici Raporları', href: '/analytics', icon: BarChart3 },
-          { name: 'Kullanıcı Yönetimi', href: '/users', icon: UserPlus },
-          { name: 'Şirket Profilleri', href: '/companies', icon: Building2 },
-          { name: 'Müşteri Kategorileri', href: '/categories', icon: Tags },
-          { name: 'İşlem Logları', href: '/audit-logs', icon: Activity },
-        ]
-      : []),
-  ];
+  // Gruplandırılmış Menü Yapısı
+  const menuGroups = [
+    {
+      id: 'crm',
+      title: 'CRM MODÜLÜ',
+      icon: Briefcase,
+      items: [
+        { name: 'Potansiyel Müşteriler', href: '/leads', icon: Target, show: can('LEADS', 'view') },
+        { name: 'Müşteriler', href: '/customers', icon: Users, show: can('CUSTOMERS', 'view') },
+        { name: 'Teklif Yönetimi', href: '/quotes', icon: FileSpreadsheet, show: can('QUOTES', 'view') },
+        { name: 'Satış & Faturalar', href: '/sales', icon: BadgeDollarSign, show: can('SALES', 'view') },
+        { name: 'Ürün & Hizmetler', href: '/products', icon: Package, show: can('PRODUCTS', 'view') },
+        { name: 'Müşteri Kategorileri', href: '/categories', icon: Tags, show: can('CATEGORIES', 'view') },
+      ].filter((item) => item.show),
+    },
+    {
+      id: 'stock',
+      title: 'STOK & SEVKİYAT',
+      icon: Boxes,
+      items: [
+        { name: 'Mal Kabul (Stok Girişi)', href: '/stock/entries', icon: PackagePlus, show: can('STOCK_ENTRY', 'view') },
+        { name: 'Stok Çıkışı (Sevkiyat)', href: '/stock/exits', icon: PackageMinus, show: can('STOCK_EXIT', 'view') },
+        { name: 'Arıza & Servis (RMA)', href: '/stock/faults', icon: Wrench, show: can('FAULTS', 'view') },
+        { name: 'Stok Raporları', href: '/stock/reports', icon: ClipboardList, show: can('STOCK_VIEW', 'view') || can('REPORTS', 'view') },
+        { name: 'Depolar', href: '/warehouses', icon: Warehouse, show: can('WAREHOUSES', 'view') },
+        { name: 'Tedarikçiler', href: '/suppliers', icon: Truck, show: can('SUPPLIERS', 'view') },
+      ].filter((item) => item.show),
+    },
+    {
+      id: 'admin',
+      title: 'YÖNETİM & AYARLAR',
+      icon: Settings,
+      items: [
+        { name: 'Yönetici Raporları', href: '/analytics', icon: BarChart3, show: can('REPORTS', 'view') },
+        { name: 'Kullanıcı Yönetimi', href: '/users', icon: UserPlus, show: can('USERS', 'view') },
+        { name: 'Roller & Yetkiler', href: '/roles', icon: ShieldCheck, show: can('ROLES', 'view') },
+        { name: 'Sevkiyat Onay Akışı', href: '/stock/approval-settings', icon: CheckSquare, show: isManager || Boolean(user?.isSuperAdmin) },
+        { name: 'Şirket Profilleri', href: '/companies', icon: Building2, show: can('COMPANIES', 'view') },
+        { name: 'İşlem Logları', href: '/audit-logs', icon: Activity, show: can('AUDIT_LOGS', 'view') },
+      ].filter((item) => item.show),
+    },
+  ].filter((group) => group.items.length > 0);
+
+  // Hangi grupların açık olduğu state (varsayılan: tümü açık)
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
+  };
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
@@ -62,25 +110,79 @@ export const AppLayout: React.FC = () => {
         </div>
 
         {/* Menü Linkleri */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname.startsWith(item.href);
+        <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+          {/* Bağımsız Üst Link: Ana Sayfa */}
+          <div>
+            <Link
+              to="/dashboard"
+              className={cn(
+                'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all h-10',
+                location.pathname === '/dashboard' || location.pathname === '/'
+                  ? 'bg-navy-700 text-white shadow-xs dark:bg-navy-600'
+                  : 'text-slate-600 hover:text-navy-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60',
+              )}
+            >
+              <LayoutDashboard className={cn('w-4 h-4 shrink-0', location.pathname === '/dashboard' || location.pathname === '/' ? 'text-white' : 'text-slate-400')} />
+              <span>Ana Sayfa</span>
+            </Link>
+          </div>
+
+          {/* Gruplandırılmış Modüller */}
+          {menuGroups.map((group) => {
+            const isCollapsed = collapsedGroups[group.id] ?? false;
+            const hasActiveChild = group.items.some((item) => location.pathname.startsWith(item.href));
+            const GroupIcon = group.icon;
 
             return (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all h-11',
-                  isActive
-                    ? 'bg-navy-700 text-white shadow-xs dark:bg-navy-600'
-                    : 'text-slate-600 hover:text-navy-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60',
+              <div key={group.id} className="space-y-1">
+                {/* Grup Başlığı (Açılır/Kapanır) */}
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wider uppercase transition-colors cursor-pointer',
+                    hasActiveChild
+                      ? 'text-navy-700 dark:text-navy-300 bg-slate-100/60 dark:bg-slate-800/40'
+                      : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <GroupIcon className="w-3.5 h-3.5" />
+                    {group.title}
+                  </span>
+                  {isCollapsed ? (
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                </button>
+
+                {/* Grup İçi Alt Menü Linkleri */}
+                {!isCollapsed && (
+                  <div className="space-y-0.5 pl-1.5 border-l-2 border-slate-100 dark:border-slate-800/80 ml-2">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = location.pathname.startsWith(item.href);
+
+                      return (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          className={cn(
+                            'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all h-9',
+                            isActive
+                              ? 'bg-navy-700 text-white shadow-xs dark:bg-navy-600'
+                              : 'text-slate-600 hover:text-navy-700 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60',
+                          )}
+                        >
+                          <Icon className={cn('w-3.5 h-3.5 shrink-0', isActive ? 'text-white' : 'text-slate-400')} />
+                          <span className="truncate">{item.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-              >
-                <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-white' : 'text-slate-400')} />
-                <span>{item.name}</span>
-              </Link>
+              </div>
             );
           })}
         </nav>
@@ -145,9 +247,9 @@ export const AppLayout: React.FC = () => {
               <DreamLogo size="sm" />
             </div>
             <div className="hidden lg:block">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dream Telecom CRM</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dream Telecom ERP</span>
               <span className="text-xs text-slate-400 mx-2">•</span>
-              <span className="text-xs text-slate-400 font-medium">Müşteri İlişkileri & Satış Portalı</span>
+              <span className="text-xs text-slate-400 font-medium">Satış, Stok & Kurumsal Yönetim Portalı</span>
             </div>
           </div>
 
@@ -180,33 +282,52 @@ export const AppLayout: React.FC = () => {
         </header>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-card border-b border-slate-200 dark:border-slate-800 p-4 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold"
-              >
-                <item.icon className="w-4 h-4" />
-                {item.name}
-              </Link>
+          <div className="lg:hidden bg-card border-b border-slate-200 dark:border-slate-800 p-4 space-y-3 max-h-[80vh] overflow-y-auto">
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold bg-navy-700 text-white"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Ana Sayfa</span>
+            </Link>
+
+            {menuGroups.map((group) => (
+              <div key={group.id} className="space-y-1">
+                <div className="px-3 py-1 text-[10px] font-bold tracking-wider uppercase text-slate-400">
+                  {group.title}
+                </div>
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <item.icon className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </div>
             ))}
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setProfileModalOpen(true);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-navy-700 dark:text-navy-300"
-            >
-              <UserIcon className="w-4 h-4" /> Profilimi Düzenle
-            </button>
-            <button
-              onClick={logout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-red-600"
-            >
-              <LogOut className="w-4 h-4" /> Çıkış Yap
-            </button>
+
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setProfileModalOpen(true);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-navy-700 dark:text-navy-300"
+              >
+                <UserIcon className="w-4 h-4" /> Profilimi Düzenle
+              </button>
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-red-600"
+              >
+                <LogOut className="w-4 h-4" /> Çıkış Yap
+              </button>
+            </div>
           </div>
         )}
 

@@ -3,10 +3,14 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { Role } from '../common/enums/crm.enums';
+import { PermissionsService } from '../common/services/permissions.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private permissionsService: PermissionsService,
+  ) {}
 
   async create(dto: CreateUserDto) {
     const existing = await this.prisma.user.findUnique({
@@ -24,6 +28,7 @@ export class UsersService {
         phone: dto.phone || null,
         passwordHash,
         role: dto.role || Role.SALES_REP,
+        appRoleId: dto.appRoleId || null,
       },
       select: {
         id: true,
@@ -31,6 +36,11 @@ export class UsersService {
         fullName: true,
         phone: true,
         role: true,
+        isSuperAdmin: true,
+        appRoleId: true,
+        appRole: {
+          select: { id: true, name: true },
+        },
         isActive: true,
         createdAt: true,
       },
@@ -46,6 +56,11 @@ export class UsersService {
         fullName: true,
         phone: true,
         role: true,
+        isSuperAdmin: true,
+        appRoleId: true,
+        appRole: {
+          select: { id: true, name: true },
+        },
         isActive: true,
         createdAt: true,
       },
@@ -62,6 +77,11 @@ export class UsersService {
         fullName: true,
         phone: true,
         role: true,
+        isSuperAdmin: true,
+        appRoleId: true,
+        appRole: {
+          select: { id: true, name: true },
+        },
         isActive: true,
         createdAt: true,
       },
@@ -90,7 +110,7 @@ export class UsersService {
       delete data.password;
     }
 
-    return this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { id },
       data,
       select: {
@@ -99,9 +119,17 @@ export class UsersService {
         fullName: true,
         phone: true,
         role: true,
+        isSuperAdmin: true,
+        appRoleId: true,
+        appRole: {
+          select: { id: true, name: true },
+        },
         isActive: true,
         createdAt: true,
       },
     });
+
+    this.permissionsService.invalidateUserCache(id);
+    return updated;
   }
 }

@@ -30,7 +30,7 @@ export class AnalyticsService {
     }
 
     // Tüm DB sorgularını eşzamanlı (paralel) çalıştır - performansı 10 kat hızlandırır
-    const [reps, sales, quotes, leads, companies] = await Promise.all([
+    const [reps, sales, quotes, leads, companies, stockLevels, pendingExitsCount] = await Promise.all([
       // 1. Tüm aktif kullanıcılar (Yöneticiler + Satış Temsilcileri)
       this.prisma.user.findMany({
         where: { isActive: true },
@@ -87,7 +87,55 @@ export class AnalyticsService {
         select: { id: true, code: true, name: true },
         orderBy: { code: 'asc' },
       }),
+      // 6. Depo Stok Seviyeleri ve Ürün Fiyatları
+      this.prisma.stockLevel.findMany({
+        include: {
+          product: {
+            select: {
+              id: true,
+              unitPrice: true,
+              currency: true,
+              minStockLevel: true,
+            },
+          },
+        },
+      }),
+      // 7. Onay Bekleyen Kargo / Sevkiyat Sayısı
+      this.prisma.stockExit.count({
+        where: { status: 'PENDING_APPROVAL' },
+      }),
     ]);
+
+    // Stok Envanter Değeri ve Miktarları Hesaplama
+    let totalStockValueTryDec = new Decimal(0);
+    let totalStockValueUsdDec = new Decimal(0);
+    let totalStockQuantity = 0;
+    let criticalStockCount = 0;
+    const uniqueProductsSet = new Set<string>();
+
+    for (const sl of (stockLevels as any[]) || []) {
+      const qty = Number(sl.quantity || 0);
+      if (qty <= 0) continue;
+
+      totalStockQuantity += qty;
+      uniqueProductsSet.add(sl.productId);
+
+      const uPrice = new Decimal(sl.product?.unitPrice || 0);
+      const lineTotal = uPrice.times(qty);
+
+      if (sl.product?.currency === 'USD') {
+        totalStockValueUsdDec = totalStockValueUsdDec.plus(lineTotal);
+        totalStockValueTryDec = totalStockValueTryDec.plus(lineTotal.times(usdRateDec));
+      } else {
+        totalStockValueTryDec = totalStockValueTryDec.plus(lineTotal);
+        totalStockValueUsdDec = totalStockValueUsdDec.plus(lineTotal.dividedBy(usdRateDec));
+      }
+
+      const minLevel = Number(sl.product?.minStockLevel || 0);
+      if (minLevel > 0 && qty <= minLevel) {
+        criticalStockCount++;
+      }
+    }
 
     // Calculate Sales by Rep and Category
     const salesByRepMap: Record<string, { totalAmount: Decimal; count: number }> = {};
@@ -368,6 +416,12 @@ export class AnalyticsService {
         pendingInvoiceSalesAmountUsd: pendingInvoiceSalesAmountUsdDec.toFixed(2),
         pendingInvoiceSalesCount,
         leadConversionRate,
+        totalStockValueTry: totalStockValueTryDec.toFixed(2),
+        totalStockValueUsd: totalStockValueUsdDec.toFixed(2),
+        totalStockQuantity,
+        totalStockProductsCount: uniqueProductsSet.size,
+        pendingExitsCount,
+        criticalStockCount,
       },
       salesByRep,
       salesByCategory,

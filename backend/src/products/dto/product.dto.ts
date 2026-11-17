@@ -62,6 +62,39 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   imageUrl?: string;
+
+  @ApiPropertyOptional({ default: false, description: 'Seri Numarası Takibi Yapılsın mı?' })
+  @IsOptional()
+  trackSerial?: boolean = false;
+
+  @ApiPropertyOptional({ default: false, description: 'MAC Adresi Takibi Yapılsın mı?' })
+  @IsOptional()
+  trackMac?: boolean = false;
+
+  @ApiPropertyOptional({ default: false, description: 'MAC Adresi Zorunlu mu?' })
+  @IsOptional()
+  macRequired?: boolean = false;
+
+  @ApiPropertyOptional({ default: 24, description: 'Müşteri Garanti Süresi (Ay)' })
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  customerWarrantyMonths?: number = 24;
+
+  @ApiPropertyOptional({ default: 24, description: 'Tedarikçi Garanti Süresi (Ay)' })
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  supplierWarrantyMonths?: number = 24;
+
+  @ApiPropertyOptional({ example: '5.00', description: 'Kritik Minimum Stok Seviyesi' })
+  @IsOptional()
+  minStockLevel?: string = '0';
+
+  @ApiPropertyOptional({ default: 'ADET', description: 'Birim (ADET, METRE, PAKET vb.)' })
+  @IsString()
+  @IsOptional()
+  unit?: string = 'ADET';
 }
 
 export class UpdateProductDto {
@@ -114,6 +147,39 @@ export class UpdateProductDto {
   @IsString()
   @IsOptional()
   imageUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  trackSerial?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  trackMac?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  macRequired?: boolean;
+
+  @ApiPropertyOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  customerWarrantyMonths?: number;
+
+  @ApiPropertyOptional()
+  @Type(() => Number)
+  @IsInt()
+  @IsOptional()
+  supplierWarrantyMonths?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  minStockLevel?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  unit?: string;
 }
 
 export class ProductQueryDto extends PaginationQueryDto {
@@ -126,6 +192,34 @@ export class ProductQueryDto extends PaginationQueryDto {
   @IsString()
   @IsOptional()
   brand?: string;
+}
+
+export class ProductBarcodeDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  productId: string;
+
+  @ApiProperty()
+  barcode: string;
+
+  @ApiProperty()
+  isDefault: boolean;
+
+  @ApiProperty()
+  createdAt: Date;
+}
+
+export class AddBarcodeDto {
+  @ApiProperty({ example: '8691234567890' })
+  @IsString()
+  @IsNotEmpty({ message: 'Barkod boş olamaz.' })
+  barcode: string;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  isDefault?: boolean;
 }
 
 export class ProductDto {
@@ -161,6 +255,30 @@ export class ProductDto {
 
   @ApiPropertyOptional()
   imageUrl?: string | null;
+
+  @ApiProperty()
+  trackSerial: boolean;
+
+  @ApiProperty()
+  trackMac: boolean;
+
+  @ApiProperty()
+  macRequired: boolean;
+
+  @ApiProperty()
+  customerWarrantyMonths: number;
+
+  @ApiProperty()
+  supplierWarrantyMonths: number;
+
+  @ApiProperty()
+  minStockLevel: string;
+
+  @ApiProperty()
+  unit: string;
+
+  @ApiPropertyOptional({ type: [ProductBarcodeDto] })
+  barcodes?: ProductBarcodeDto[];
 
   @ApiProperty()
   isActive: boolean;

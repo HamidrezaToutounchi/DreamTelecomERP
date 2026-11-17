@@ -21,6 +21,14 @@ import { UsersPage } from '@/pages/Users';
 import { CategoriesPage } from '@/pages/Categories';
 import { AuditLogsPage } from '@/pages/AuditLogs';
 import { CompaniesPage } from '@/pages/Companies';
+import { RolesPage } from '@/pages/Roles';
+import { WarehousesPage } from '@/pages/Warehouses';
+import { SuppliersPage } from '@/pages/Suppliers';
+import { StockEntriesPage } from '@/pages/StockEntries';
+import { StockExitsPage } from '@/pages/StockExits';
+import FaultsPage from '@/pages/Faults';
+import StockReportsPage from '@/pages/StockReports';
+import ApprovalSettingsPage from '@/pages/ApprovalSettings';
 
 // 1. Root Route
 const rootRoute = createRootRoute();
@@ -177,6 +185,69 @@ const companiesRoute = createRoute({
   component: CompaniesPage,
 });
 
+// 16. Roles & Permissions (Yönetici & Özel İzin)
+const rolesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/roles',
+  component: RolesPage,
+  beforeLoad: () => {
+    const userJson = localStorage.getItem('user');
+    const user = userJson ? JSON.parse(userJson) : null;
+    if (user?.role !== 'SALES_MANAGER' && !user?.isSuperAdmin) {
+      throw redirect({ to: '/dashboard' });
+    }
+  },
+});
+
+// 17. Warehouses (Depo Yönetimi)
+const warehousesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/warehouses',
+  component: WarehousesPage,
+});
+
+// 18. Suppliers (Tedarikçi Yönetimi)
+const suppliersRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/suppliers',
+  component: SuppliersPage,
+});
+
+// 19. Stock Entries (Mal Kabul & Stok Girişleri)
+const stockEntriesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/stock/entries',
+  component: StockEntriesPage,
+});
+
+// 20. Stock Exits (Stok Çıkışı & Sevkiyat)
+const stockExitsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/stock/exits',
+  component: StockExitsPage,
+});
+
+// 21. Faults (Arıza & RMA Yönetimi)
+const faultsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/stock/faults',
+  component: FaultsPage,
+});
+
+// 22. Stock Reports (Stok Raporları & Yaşam Döngüsü)
+const stockReportsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/stock/reports',
+  component: StockReportsPage,
+});
+
+// 23. Approval Settings (Sevkiyat Onay Akışı Ayarları)
+const approvalSettingsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/stock/approval-settings',
+  component: ApprovalSettingsPage,
+});
+
 // Route Tree
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -195,6 +266,14 @@ const routeTree = rootRoute.addChildren([
     categoriesRoute,
     auditLogsRoute,
     companiesRoute,
+    rolesRoute,
+    warehousesRoute,
+    suppliersRoute,
+    stockEntriesRoute,
+    stockExitsRoute,
+    faultsRoute,
+    stockReportsRoute,
+    approvalSettingsRoute,
   ]),
 ]);
 

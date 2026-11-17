@@ -120,3 +120,66 @@ veya Docker certbot ile sertifikanızı oluşturup `nginx-host-proxy.conf` dosya
   ```
 - **Yüklenen dosyalar (fotoğraflar):**
   Docker named volume olan `dreamtelecom_uploads` içinde kalıcı olarak saklanır.
+
+---
+
+## 🔒 Stok & Arıza Yönetimi Modülü Canlıya Alma (Production Deploy Kılavuzu)
+
+Sistem canlıda gerçek verilerle çalıştığı için, yeni stok ve arıza yönetimi modülünü canlı sunucuya alırken **mutlaka** aşağıdaki adımları sırasıyla uygulayınız:
+
+### 1. Adım: Canlı Veritabanı (PostgreSQL) Yedeğini Alın
+Canlı veritabanı konteynerinden tam SQL dump yedeği alınız:
+```bash
+# Canlı DB yedeği (tarih ve saat damgalı)
+docker exec dreamtelecom-db pg_dump -U postgres sdys_crm > sdys_crm_backup_$(date +%Y%m%d_%H%M%S).sql
+```
+Yedeğin dosya boyutunu kontrol ediniz:
+```bash
+ls -lh sdys_crm_backup_*.sql
+```
+
+### 2. Adım: Uploads Docker Volume Yedeğini Alın
+Müşteri ve teklif evrakları ile yeni eklenecek stok belgelerinin saklandığı Docker volume'unun yedeğini alınız:
+```bash
+docker run --rm -v dreamtelecom_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
+```
+
+### 3. Adım: Yeni Kodu Çekin ve Canlı Konteynerleri Güncelleyin
+```bash
+# En güncel kodu çekin
+git pull origin main
+
+# Backend ve frontend konteynerlerini derleyip yeniden başlatın
+docker compose up -d --build dt-backend dt-frontend
+```
+
+> **Önemli Not:** `docker-entrypoint.sh` içerisinde yer alan `npx prisma db push` komutu otomatik olarak çalışır. Yapılan tüm şema değişiklikleri **yalnızca eklemeli (additive only)** olduğu için mevcut hiçbir veri, müşteri, teklif veya kullanıcı kaydı silinmez ya da zarar görmez.
+
+### 4. Adım: Başlangıç Tanımlarını Yükleyin (Idempotent Seed)
+Varsayılan "Ana Depo" ve standart rol izin matrisini yüklemek için seed komutunu çalıştırınız (Mevcut admin hesabını veya verileri bozmaz, `upsert` ile çalışır):
+```bash
+docker compose exec dt-backend npx ts-node prisma/seed.ts
+```
+
+### 5. Adım: Canlı Sistem Doğrulama Kontrolleri
+Aşağıdaki kontrolleri canlı arayüzde doğrulayınız:
+1. `https://erp.dreamtelecom.com.tr/` adresine giriş yapınız (`admin@dreamtelecom.com`).
+2. Sol menüde **Depolar**, **Tedarikçiler**, **Mal Kabul**, **Stok Çıkışı**, **Arıza & Servis (RMA)** ve **Stok Raporları** menülerinin geldiğini doğrulayınız.
+3. Mevcut Teklifler ve Müşteriler sayfalarınızın eksiksiz görüntülendiğini ve çalıştığını teyit ediniz.
+
+---
+
+## 🔄 Geri Alma Prosedürü (Rollback Planı)
+
+Olası beklenmedik bir durumda canlı sistemi güncelleme öncesi haline getirmek için:
+
+1. **Kodu Önceki Commite Çekin:**
+   ```bash
+   git checkout <guncelleme_oncesi_commit_hash>
+   docker compose up -d --build dt-backend dt-frontend
+   ```
+
+2. **İhtiyaç Halinde Veritabanı Yedeğini Geri Yükleyin:**
+   ```bash
+   cat sdys_crm_backup_<tarih_saat>.sql | docker exec -i dreamtelecom-db psql -U postgres -d sdys_crm
+   ```

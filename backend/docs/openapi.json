@@ -402,6 +402,178 @@
         ]
       }
     },
+    "/api/v1/roles": {
+      "get": {
+        "operationId": "RolesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoleResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Tüm sistem ve özel rolleri listele",
+        "tags": [
+          "Roles"
+        ]
+      },
+      "post": {
+        "operationId": "RolesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Yeni rol ve yetki matrisi oluştur",
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
+    "/api/v1/roles/{id}": {
+      "get": {
+        "operationId": "RolesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Rol detayını ve izin matrisini getir",
+        "tags": [
+          "Roles"
+        ]
+      },
+      "patch": {
+        "operationId": "RolesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Rol bilgilerini ve yetki matrisini güncelle",
+        "tags": [
+          "Roles"
+        ]
+      },
+      "delete": {
+        "operationId": "RolesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Silme sonucu"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Rolü sil (Sistem rolleri ve atanmış kullanıcısı olanlar silinemez)",
+        "tags": [
+          "Roles"
+        ]
+      }
+    },
     "/api/v1/leads": {
       "post": {
         "operationId": "LeadsController_create",
@@ -2463,7 +2635,7 @@
             "bearer": []
           }
         ],
-        "summary": "Ürün veya hizmet bilgilerini güncelle (Yalnızca Satış Müdürü)",
+        "summary": "Ürün veya hizmet bilgilerini güncelle",
         "tags": [
           "Products"
         ]
@@ -2492,6 +2664,124 @@
           }
         ],
         "summary": "Ürünü katalogdan kaldır / pasife al (Yalnızca Satış Müdürü)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/api/v1/products/{id}/barcodes": {
+      "post": {
+        "operationId": "ProductsController_addBarcode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddBarcodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ürüne Barkod Ekle",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/api/v1/products/{id}/barcodes/{barcodeId}": {
+      "delete": {
+        "operationId": "ProductsController_removeBarcode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "barcodeId",
+            "required": true,
+            "in": "path",
+            "description": "Barkod ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Üründen Barkod Sil",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/api/v1/products/{id}/barcodes/{barcodeId}/set-default": {
+      "patch": {
+        "operationId": "ProductsController_setDefaultBarcode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "barcodeId",
+            "required": true,
+            "in": "path",
+            "description": "Barkod ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Barkodu Varsayılan Yap",
         "tags": [
           "Products"
         ]
@@ -2604,6 +2894,1967 @@
         "summary": "Şirket bilgilerini güncelle (Ünvan, adres, telefon, e-posta, logo vb.)",
         "tags": [
           "Companies"
+        ]
+      }
+    },
+    "/api/v1/warehouses": {
+      "get": {
+        "operationId": "WarehousesController_findAll",
+        "parameters": [
+          {
+            "name": "onlyActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarehouseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depoları Listele",
+        "tags": [
+          "Warehouses"
+        ]
+      },
+      "post": {
+        "operationId": "WarehousesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWarehouseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Depo Tanımla",
+        "tags": [
+          "Warehouses"
+        ]
+      }
+    },
+    "/api/v1/warehouses/{id}": {
+      "get": {
+        "operationId": "WarehousesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depo Detayını Getir",
+        "tags": [
+          "Warehouses"
+        ]
+      },
+      "put": {
+        "operationId": "WarehousesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWarehouseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depo Bilgilerini Güncelle",
+        "tags": [
+          "Warehouses"
+        ]
+      }
+    },
+    "/api/v1/warehouses/{id}/toggle-active": {
+      "patch": {
+        "operationId": "WarehousesController_toggleActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depoyu Aktif/Pasif Yap",
+        "tags": [
+          "Warehouses"
+        ]
+      }
+    },
+    "/api/v1/suppliers": {
+      "get": {
+        "operationId": "SuppliersController_findAll",
+        "parameters": [
+          {
+            "name": "onlyActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tedarikçileri Listele",
+        "tags": [
+          "Suppliers"
+        ]
+      },
+      "post": {
+        "operationId": "SuppliersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Tedarikçi Tanımla",
+        "tags": [
+          "Suppliers"
+        ]
+      }
+    },
+    "/api/v1/suppliers/{id}": {
+      "get": {
+        "operationId": "SuppliersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tedarikçi Detayını Getir",
+        "tags": [
+          "Suppliers"
+        ]
+      },
+      "put": {
+        "operationId": "SuppliersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tedarikçi Bilgilerini Güncelle",
+        "tags": [
+          "Suppliers"
+        ]
+      }
+    },
+    "/api/v1/suppliers/{id}/toggle-active": {
+      "patch": {
+        "operationId": "SuppliersController_toggleActive",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tedarikçiyi Aktif/Pasif Yap",
+        "tags": [
+          "Suppliers"
+        ]
+      }
+    },
+    "/api/v1/stock/customers/search": {
+      "get": {
+        "operationId": "StockController_searchCustomers",
+        "parameters": [
+          {
+            "name": "query",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockCustomerSearchItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Modülü İçin Tüm Müşterilerde Arama",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/customers/quick-create": {
+      "post": {
+        "operationId": "StockController_quickCreateCustomer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuickCreateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockCustomerSearchItemDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok İçin Hızlı ve Mükerrer Kontrollü Müşteri Ekle",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/lookup": {
+      "get": {
+        "operationId": "StockController_lookup",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockLookupResultDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Barkod, Seri No veya MAC ile Akıllı Ürün/Stok Tespiti",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/documents/upload": {
+      "post": {
+        "operationId": "StockController_uploadStockDocument",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockDocumentUploadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Giriş/Çıkış Fişleri İçin Gizli Belge Yükle",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/documents/{filename}": {
+      "get": {
+        "operationId": "StockController_serveStockDocument",
+        "parameters": [
+          {
+            "name": "filename",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yetkili Kullanıcıya Gizli Stok Belgesini Göster / İndir",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/entries": {
+      "post": {
+        "operationId": "StockController_createEntry",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStockEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockEntryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Mal Kabul / Stok Giriş Fişi Kaydet",
+        "tags": [
+          "Stock"
+        ]
+      },
+      "get": {
+        "operationId": "StockController_findAllEntries",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplierId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockEntriesPaginatedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Giriş Fişlerini Listele (Filtreleme & Sayfalama)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/entries/{id}": {
+      "get": {
+        "operationId": "StockController_findOneEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockEntryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Giriş Fişi Detayını ve Kalemlerini Getir",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/entries/{id}/cancel": {
+      "post": {
+        "operationId": "StockController_cancelEntry",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelStockEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockEntryResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Giriş Fişini İptal Et (Ters Hareket & İptal Gerekçesi İle)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/available-serials": {
+      "get": {
+        "operationId": "StockController_getAvailableSerials",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "query",
+            "description": "Ürün ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": true,
+            "in": "query",
+            "description": "Depo ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arama terimi (seri no veya MAC)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableSerialItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depoda Çıkışa Hazır (IN_STOCK) Serileri Listele",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits": {
+      "post": {
+        "operationId": "StockController_createExit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStockExitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Stok Çıkışı / Sevkiyat Talebi Oluştur",
+        "tags": [
+          "Stock"
+        ]
+      },
+      "get": {
+        "operationId": "StockController_findAllExits",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SALE_SHIPMENT",
+                "TRANSFER_OUT",
+                "RETURN_SUPPLIER",
+                "COUNT_DEFICIT",
+                "SCRAP",
+                "FAULT_SEND",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_APPROVAL",
+                "APPROVED",
+                "SHIPPED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitsPaginatedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Çıkış Fişlerini Listele (Filtreleme & Sayfalama)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}": {
+      "get": {
+        "operationId": "StockController_findOneExit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Çıkış Fişi Detayını, Kalemlerini ve Onay Adımlarını Getir",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}/approve": {
+      "post": {
+        "operationId": "StockController_approveExit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveStockExitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Çıkış Fişini Onayla (Sıralı Onay Mekanizması)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}/reject": {
+      "post": {
+        "operationId": "StockController_rejectExit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectStockExitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Çıkış Fişini Reddet (Serileri Serbest Bırakır)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}/ship": {
+      "post": {
+        "operationId": "StockController_shipExit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShipStockExitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sevkiyatı Tamamla / Sevk Et (Fiziksel Stok Düşüşü)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}/shipping": {
+      "patch": {
+        "operationId": "StockController_updateExitShipping",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockExitShippingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kargo / Taşıyıcı ve Takip Numarası Bilgilerini Güncelle (1 gün sonra geldiğinde)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/exits/{id}/cancel": {
+      "post": {
+        "operationId": "StockController_cancelExit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelStockExitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockExitResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Çıkış Fişini İptal Et (Ters Hareket & Gerekçe İle)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/faults": {
+      "post": {
+        "operationId": "StockController_createFault",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFaultRecordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultRecordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Arıza / RMA Kaydı Oluştur",
+        "tags": [
+          "Stock"
+        ]
+      },
+      "get": {
+        "operationId": "StockController_findAllFaults",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RECEIVED",
+                "IN_INSPECTION",
+                "WAITING_PARTS",
+                "RESOLVED",
+                "REPLACED",
+                "SCRAPPED",
+                "RETURNED_TO_CUSTOMER"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Arıza No, Seri No, Ürün Adı veya Müşteri Ara",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultsPaginatedResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Arıza Kayıtlarını Listele (Filtreleme & Sayfalama)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/faults/{id}": {
+      "get": {
+        "operationId": "StockController_findOneFault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultRecordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Arıza Kaydı Detayı",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/faults/{id}/status": {
+      "patch": {
+        "operationId": "StockController_updateFaultStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFaultStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultRecordResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Arıza Statüsü ve Teknisyen Notu Güncelle",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/faults/{id}/pdf": {
+      "get": {
+        "operationId": "StockController_getFaultPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Servis Kabul / Arıza Fişi PDF İndir",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/warehouse-stock": {
+      "get": {
+        "operationId": "StockController_getWarehouseStockReport",
+        "parameters": [
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarehouseStockReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Depo Bazlı Stok Durumu Raporu",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/critical-stock": {
+      "get": {
+        "operationId": "StockController_getCriticalStockReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarehouseStockReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Kritik Stok Seviyesi Raporu",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/serial-timeline": {
+      "get": {
+        "operationId": "StockController_getSerialTimeline",
+        "parameters": [
+          {
+            "name": "query",
+            "required": true,
+            "in": "query",
+            "description": "Seri Numarası veya MAC",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SerialTimelineResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Seri Numarası Yaşam Döngüsü & Zaman Tüneli",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/warranty": {
+      "get": {
+        "operationId": "StockController_getWarrantyReport",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "CUSTOMER",
+                "SUPPLIER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "daysLeft",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarrantyReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Garanti Takip Raporu (Müşteri & Tedarikçi)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/movements": {
+      "get": {
+        "operationId": "StockController_getStockMovements",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockMovementReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Hareket Defteri (Giriş / Çıkış Tarihçesi)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/supplier-entries": {
+      "get": {
+        "operationId": "StockController_getSupplierEntriesReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierEntriesReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Tedarikçi Bazlı Mal Kabul Raporu",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/customer-exits": {
+      "get": {
+        "operationId": "StockController_getCustomerExitsReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerExitsReportItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Müşteri Bazlı Sevkiyat Raporu",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/fault-statistics": {
+      "get": {
+        "operationId": "StockController_getFaultStatisticsReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaultStatisticsReportDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Arıza & RMA İstatistikleri Raporu",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/reports/export/{reportType}": {
+      "get": {
+        "operationId": "StockController_exportStockReport",
+        "parameters": [
+          {
+            "name": "reportType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stok Raporlarını Excel Olarak İndir (.xlsx)",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/approval-settings": {
+      "get": {
+        "operationId": "StockController_getApprovalSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalSettingResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sıralı Onay Akışı Adımlarını Listele",
+        "tags": [
+          "Stock"
+        ]
+      },
+      "post": {
+        "operationId": "StockController_createApprovalSetting",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApprovalSettingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalSettingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Yeni Onay Adımı Ekle",
+        "tags": [
+          "Stock"
+        ]
+      }
+    },
+    "/api/v1/stock/approval-settings/{id}": {
+      "put": {
+        "operationId": "StockController_updateApprovalSetting",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateApprovalSettingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalSettingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Onay Adımını Güncelle",
+        "tags": [
+          "Stock"
+        ]
+      },
+      "delete": {
+        "operationId": "StockController_removeApprovalSetting",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Onay Adımını Sil",
+        "tags": [
+          "Stock"
         ]
       }
     }
@@ -2811,6 +5062,22 @@
             "type": "boolean",
             "example": true
           },
+          "isSuperAdmin": {
+            "type": "boolean",
+            "example": false
+          },
+          "appRoleId": {
+            "type": "object",
+            "example": "b3f5e123-..."
+          },
+          "appRoleName": {
+            "type": "object",
+            "example": "Depo Sorumlusu"
+          },
+          "permissions": {
+            "type": "object",
+            "description": "Kullanıcının modül bazlı yetkileri haritası"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -2899,6 +5166,12 @@
               "SALES_MANAGER"
             ],
             "default": "SALES_REP"
+          },
+          "appRoleId": {
+            "type": "string",
+            "nullable": true,
+            "example": "app-role-uuid",
+            "description": "Atanacak sistem / özel rol ID"
           }
         },
         "required": [
@@ -2929,6 +5202,15 @@
               "SALES_REP",
               "SALES_MANAGER"
             ]
+          },
+          "isSuperAdmin": {
+            "type": "boolean"
+          },
+          "appRoleId": {
+            "type": "object"
+          },
+          "appRole": {
+            "type": "object"
           },
           "isActive": {
             "type": "boolean"
@@ -2973,9 +5255,166 @@
               "SALES_MANAGER"
             ]
           },
+          "appRoleId": {
+            "type": "string",
+            "nullable": true,
+            "example": "app-role-uuid",
+            "description": "Atanacak sistem / özel rol ID"
+          },
           "isActive": {
             "type": "boolean",
             "example": true
+          }
+        }
+      },
+      "RolePermissionItemDto": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "enum": [
+              "LEADS",
+              "CUSTOMERS",
+              "QUOTES",
+              "SALES",
+              "PRODUCTS",
+              "REPORTS",
+              "STOCK_VIEW",
+              "STOCK_ENTRY",
+              "STOCK_EXIT",
+              "STOCK_ADJUSTMENT",
+              "WAREHOUSES",
+              "SUPPLIERS",
+              "FAULTS",
+              "STOCK_REPORTS",
+              "USERS",
+              "ROLES",
+              "APPROVAL_SETTINGS",
+              "COMPANIES",
+              "CATEGORIES",
+              "AUDIT_LOGS"
+            ],
+            "example": "STOCK_VIEW"
+          },
+          "canView": {
+            "type": "boolean",
+            "example": true
+          },
+          "canCreate": {
+            "type": "boolean",
+            "example": false
+          },
+          "canEdit": {
+            "type": "boolean",
+            "example": false
+          },
+          "canDelete": {
+            "type": "boolean",
+            "example": false,
+            "description": "Stok modüllerinde her zaman false / kullanılamaz"
+          },
+          "canCancel": {
+            "type": "boolean",
+            "example": false,
+            "description": "Stok modüllerinde iptal etme yetkisi"
+          }
+        },
+        "required": [
+          "module",
+          "canView",
+          "canCreate",
+          "canEdit",
+          "canDelete",
+          "canCancel"
+        ]
+      },
+      "RoleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isSystem": {
+            "type": "boolean",
+            "description": "Sistem rolleri (Yönetici, Satış Temsilcisi vb.) silinemez"
+          },
+          "userCount": {
+            "type": "number",
+            "description": "Bu role atanmış aktif kullanıcı sayısı"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RolePermissionItemDto"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isSystem",
+          "userCount",
+          "permissions",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Depo Sorumlusu",
+            "description": "Rol adı (Tekil)"
+          },
+          "description": {
+            "type": "string",
+            "example": "Stok girişi, çıkışı ve sayım işlemlerini yürütür"
+          },
+          "permissions": {
+            "description": "Modül bazlı CRUD yetki matrisi",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RolePermissionItemDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "permissions"
+        ]
+      },
+      "UpdateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Depo Sorumlusu"
+          },
+          "description": {
+            "type": "string",
+            "example": "Açıklama"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RolePermissionItemDto"
+            }
           }
         }
       },
@@ -4336,6 +6775,10 @@
             "type": "string",
             "example": "145200.00"
           },
+          "totalSalesAmountUsd": {
+            "type": "string",
+            "example": "2890.75"
+          },
           "salesCount": {
             "type": "number",
             "example": 8
@@ -4386,9 +6829,25 @@
             "type": "number",
             "example": 12
           },
+          "totalQuoteAmountTry": {
+            "type": "string",
+            "example": "250000.00"
+          },
+          "totalQuoteAmountUsd": {
+            "type": "string",
+            "example": "4980.00"
+          },
           "approvedCount": {
             "type": "number",
             "example": 7
+          },
+          "approvedAmountTry": {
+            "type": "string",
+            "example": "180000.00"
+          },
+          "approvedAmountUsd": {
+            "type": "string",
+            "example": "3585.00"
           },
           "rejectedCount": {
             "type": "number",
@@ -4401,6 +6860,14 @@
           "draftOrSentCount": {
             "type": "number",
             "example": 1
+          },
+          "openAmountTry": {
+            "type": "string",
+            "example": "70000.00"
+          },
+          "openAmountUsd": {
+            "type": "string",
+            "example": "1395.00"
           }
         },
         "required": [
@@ -4625,12 +7092,75 @@
             "type": "string",
             "example": "/uploads/product-12345.png",
             "description": "Ürün Fotoğrafı URL"
+          },
+          "trackSerial": {
+            "type": "boolean",
+            "default": false,
+            "description": "Seri Numarası Takibi Yapılsın mı?"
+          },
+          "trackMac": {
+            "type": "boolean",
+            "default": false,
+            "description": "MAC Adresi Takibi Yapılsın mı?"
+          },
+          "macRequired": {
+            "type": "boolean",
+            "default": false,
+            "description": "MAC Adresi Zorunlu mu?"
+          },
+          "customerWarrantyMonths": {
+            "type": "number",
+            "default": 24,
+            "description": "Müşteri Garanti Süresi (Ay)"
+          },
+          "supplierWarrantyMonths": {
+            "type": "number",
+            "default": 24,
+            "description": "Tedarikçi Garanti Süresi (Ay)"
+          },
+          "minStockLevel": {
+            "type": "string",
+            "example": "5.00",
+            "description": "Kritik Minimum Stok Seviyesi"
+          },
+          "unit": {
+            "type": "string",
+            "default": "ADET",
+            "description": "Birim (ADET, METRE, PAKET vb.)"
           }
         },
         "required": [
           "name",
           "type",
           "unitPrice"
+        ]
+      },
+      "ProductBarcodeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "barcode": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "productId",
+          "barcode",
+          "isDefault",
+          "createdAt"
         ]
       },
       "ProductDto": {
@@ -4681,6 +7211,33 @@
           "imageUrl": {
             "type": "object"
           },
+          "trackSerial": {
+            "type": "boolean"
+          },
+          "trackMac": {
+            "type": "boolean"
+          },
+          "macRequired": {
+            "type": "boolean"
+          },
+          "customerWarrantyMonths": {
+            "type": "number"
+          },
+          "supplierWarrantyMonths": {
+            "type": "number"
+          },
+          "minStockLevel": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "barcodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductBarcodeDto"
+            }
+          },
           "isActive": {
             "type": "boolean"
           },
@@ -4700,6 +7257,13 @@
           "unitPrice",
           "currency",
           "taxRate",
+          "trackSerial",
+          "trackMac",
+          "macRequired",
+          "customerWarrantyMonths",
+          "supplierWarrantyMonths",
+          "minStockLevel",
+          "unit",
           "isActive",
           "createdAt",
           "updatedAt"
@@ -4819,8 +7383,45 @@
           },
           "imageUrl": {
             "type": "string"
+          },
+          "trackSerial": {
+            "type": "boolean"
+          },
+          "trackMac": {
+            "type": "boolean"
+          },
+          "macRequired": {
+            "type": "boolean"
+          },
+          "customerWarrantyMonths": {
+            "type": "number"
+          },
+          "supplierWarrantyMonths": {
+            "type": "number"
+          },
+          "minStockLevel": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
           }
         }
+      },
+      "AddBarcodeDto": {
+        "type": "object",
+        "properties": {
+          "barcode": {
+            "type": "string",
+            "example": "8691234567890"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "barcode"
+        ]
       },
       "CompanyDto": {
         "type": "object",
@@ -4926,6 +7527,1812 @@
           },
           "primaryColor": {
             "type": "string"
+          }
+        }
+      },
+      "WarehouseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPerson": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive",
+          "isDefault",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateWarehouseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "WH-MAIN",
+            "description": "Benzersiz Depo Kodu"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ana Depo",
+            "description": "Depo Adı"
+          },
+          "address": {
+            "type": "string",
+            "example": "İstanbul Lojistik Merkezi"
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Ahmet Yetkili"
+          },
+          "contactPhone": {
+            "type": "string",
+            "example": "0555 123 45 67"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false,
+            "description": "Varsayılan Depo mu?"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "UpdateWarehouseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "WH-MAIN"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ana Depo"
+          },
+          "address": {
+            "type": "string"
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SupplierDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "taxOffice": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPerson": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateSupplierDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUP-0001",
+            "description": "Tedarikçi Kodu (Boşsa otomatik üretilir)"
+          },
+          "name": {
+            "type": "string",
+            "example": "Cisco Türkiye Dağıtım A.Ş.",
+            "description": "Tedarikçi Ünvanı / Adı"
+          },
+          "taxNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "taxOffice": {
+            "type": "string",
+            "example": "Büyük Mükellefler"
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Mehmet Tedarik"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0212 555 00 00"
+          },
+          "email": {
+            "type": "string",
+            "example": "siparis@tedarikci.com"
+          },
+          "address": {
+            "type": "string",
+            "example": "Maslak Mah. No:1 Sarıyer / İstanbul"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSupplierDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SUP-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Cisco Türkiye"
+          },
+          "taxNumber": {
+            "type": "string"
+          },
+          "taxOffice": {
+            "type": "string"
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StockCustomerSearchItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "taxOffice": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "companyName",
+          "phone",
+          "contactPerson"
+        ]
+      },
+      "QuickCreateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "companyName": {
+            "type": "string",
+            "example": "Örnek Telekom A.Ş."
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Ahmet Bey"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0555 123 45 67"
+          },
+          "email": {
+            "type": "string",
+            "example": "ornek@telekom.com"
+          },
+          "taxNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "taxOffice": {
+            "type": "string",
+            "example": "Marmara Kurumlar"
+          },
+          "address": {
+            "type": "string",
+            "example": "İstanbul"
+          },
+          "assignedToId": {
+            "type": "string",
+            "description": "Atanacak satış temsilcisi (boşsa ekleyen kullanıcıya atanır)"
+          }
+        },
+        "required": [
+          "companyName",
+          "contactPerson",
+          "phone"
+        ]
+      },
+      "StockLookupResultDto": {
+        "type": "object",
+        "properties": {
+          "matchedBy": {
+            "type": "string",
+            "enum": [
+              "BARCODE",
+              "SERIAL",
+              "MAC",
+              "PRODUCT_CODE",
+              "NONE"
+            ]
+          },
+          "product": {
+            "type": "object"
+          },
+          "serial": {
+            "type": "object"
+          },
+          "stockLevels": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "matchedBy"
+        ]
+      },
+      "StockDocumentUploadResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SerialItemDto": {
+        "type": "object",
+        "properties": {
+          "serial": {
+            "type": "string",
+            "example": "SN-ABC-12345"
+          },
+          "macAddress": {
+            "type": "string",
+            "example": "AA:BB:CC:11:22:33"
+          }
+        },
+        "required": [
+          "serial"
+        ]
+      },
+      "CreateStockEntryItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "example": "uuid-product-id"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 5,
+            "minimum": 1
+          },
+          "unitPrice": {
+            "type": "number",
+            "example": 150,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "default": "TRY"
+          },
+          "serials": {
+            "description": "Seri no takipli ürünler için seri listesi",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SerialItemDto"
+            }
+          }
+        },
+        "required": [
+          "productId",
+          "quantity",
+          "unitPrice",
+          "currency"
+        ]
+      },
+      "CreateStockEntryDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "PURCHASE",
+              "TRANSFER_IN",
+              "RETURN_IN",
+              "COUNT_SURPLUS",
+              "OTHER"
+            ],
+            "default": "PURCHASE"
+          },
+          "warehouseId": {
+            "type": "string",
+            "example": "uuid-warehouse-id",
+            "description": "Giriş yapılacak depo ID"
+          },
+          "supplierId": {
+            "type": "string",
+            "example": "uuid-supplier-id",
+            "description": "Tedarikçi ID"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "example": "FTR-2026-00123"
+          },
+          "waybillNumber": {
+            "type": "string",
+            "example": "IRS-2026-00987"
+          },
+          "entryDate": {
+            "type": "string",
+            "example": "2026-11-17T00:00:00.000Z"
+          },
+          "description": {
+            "type": "string",
+            "example": "Kasım ayı donanım alımı irsaliyesi"
+          },
+          "documentUrl": {
+            "type": "string",
+            "example": "/api/v1/stock/documents/abc.pdf"
+          },
+          "documentName": {
+            "type": "string",
+            "example": "irsaliye-kasim.pdf"
+          },
+          "items": {
+            "description": "Giriş fişi kalemleri",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateStockEntryItemDto"
+            }
+          }
+        },
+        "required": [
+          "warehouseId",
+          "items"
+        ]
+      },
+      "StockEntryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "entryNumber": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PURCHASE",
+              "TRANSFER_IN",
+              "RETURN_IN",
+              "COUNT_SURPLUS",
+              "OTHER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "supplierId": {
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "waybillNumber": {
+            "type": "string"
+          },
+          "entryDate": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "documentUrl": {
+            "type": "string"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "warehouse": {
+            "type": "object"
+          },
+          "supplier": {
+            "type": "object"
+          },
+          "createdBy": {
+            "type": "object"
+          },
+          "cancelledBy": {
+            "type": "object"
+          },
+          "cancelledAt": {
+            "type": "string"
+          },
+          "cancelReason": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "_count": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "entryNumber",
+          "type",
+          "status",
+          "warehouseId",
+          "entryDate",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "StockEntriesPaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockEntryResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CancelStockEntryDto": {
+        "type": "object",
+        "properties": {
+          "cancelReason": {
+            "type": "string",
+            "example": "Fatura ve irsaliyede hatalı ürün girildiği için iptal edildi."
+          }
+        },
+        "required": [
+          "cancelReason"
+        ]
+      },
+      "AvailableSerialItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "macAddress": {
+            "type": "string"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "productId",
+          "warehouseId",
+          "status"
+        ]
+      },
+      "CreateStockExitItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "example": "uuid-product-id"
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2,
+            "minimum": 1
+          },
+          "unitPrice": {
+            "type": "number",
+            "example": 250,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "TRY",
+              "USD",
+              "EUR"
+            ],
+            "default": "TRY"
+          },
+          "serials": {
+            "description": "Seri no takipli ürünler için seçilen/okutulan seri numaraları",
+            "example": [
+              "SN-12345",
+              "SN-67890"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ]
+      },
+      "CreateStockExitDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SALE_SHIPMENT",
+              "TRANSFER_OUT",
+              "RETURN_SUPPLIER",
+              "COUNT_DEFICIT",
+              "SCRAP",
+              "FAULT_SEND",
+              "OTHER"
+            ],
+            "default": "SALE_SHIPMENT"
+          },
+          "warehouseId": {
+            "type": "string",
+            "example": "uuid-warehouse-id",
+            "description": "Çıkış yapılacak depo ID"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "uuid-customer-id",
+            "description": "Müşteri ID (Satış çıkışlarında zorunlu)"
+          },
+          "waybillNumber": {
+            "type": "string",
+            "example": "IRS-2026-9901"
+          },
+          "carrierCompany": {
+            "type": "string",
+            "example": "Yurtiçi Kargo"
+          },
+          "trackingNumber": {
+            "type": "string",
+            "example": "YK-123456789"
+          },
+          "recipientPerson": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "recipientPhone": {
+            "type": "string",
+            "example": "0532 111 22 33"
+          },
+          "deliveryAddress": {
+            "type": "string",
+            "example": "Büyükdere Cad. No:123 Şişli / İstanbul"
+          },
+          "exitDate": {
+            "type": "string",
+            "example": "2026-11-17T00:00:00.000Z"
+          },
+          "description": {
+            "type": "string",
+            "example": "Acil kurumsal sipariş sevkiyatı"
+          },
+          "documentUrl": {
+            "type": "string",
+            "example": "/api/v1/stock/documents/sevk-irsaliyesi.pdf"
+          },
+          "documentName": {
+            "type": "string",
+            "example": "sevk-irsaliyesi.pdf"
+          },
+          "items": {
+            "description": "Çıkış fişi kalemleri",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateStockExitItemDto"
+            }
+          }
+        },
+        "required": [
+          "warehouseId",
+          "items"
+        ]
+      },
+      "StockExitResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "exitNumber": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SALE_SHIPMENT",
+              "TRANSFER_OUT",
+              "RETURN_SUPPLIER",
+              "COUNT_DEFICIT",
+              "SCRAP",
+              "FAULT_SEND",
+              "OTHER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_APPROVAL",
+              "APPROVED",
+              "SHIPPED",
+              "CANCELLED"
+            ]
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "waybillNumber": {
+            "type": "string"
+          },
+          "carrierCompany": {
+            "type": "string"
+          },
+          "trackingNumber": {
+            "type": "string"
+          },
+          "recipientPerson": {
+            "type": "string"
+          },
+          "recipientPhone": {
+            "type": "string"
+          },
+          "deliveryAddress": {
+            "type": "string"
+          },
+          "exitDate": {
+            "type": "string"
+          },
+          "shippedAt": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "documentUrl": {
+            "type": "string"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "warehouse": {
+            "type": "object"
+          },
+          "customer": {
+            "type": "object"
+          },
+          "createdBy": {
+            "type": "object"
+          },
+          "cancelledBy": {
+            "type": "object"
+          },
+          "cancelledAt": {
+            "type": "string"
+          },
+          "cancelReason": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "serials": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approvals": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "_count": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "exitNumber",
+          "type",
+          "status",
+          "warehouseId",
+          "exitDate",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "StockExitsPaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockExitResponseDto"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "number"
+              },
+              "pageSize": {
+                "type": "number"
+              },
+              "totalRowCount": {
+                "type": "number"
+              },
+              "totalPages": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "ApproveStockExitDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Stok kontrol edildi, sevkiyata uygundur."
+          }
+        }
+      },
+      "RejectStockExitDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Müşteri ödemesi onaylanmadığı için çıkış iptal edildi."
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "ShipStockExitDto": {
+        "type": "object",
+        "properties": {
+          "waybillNumber": {
+            "type": "string",
+            "example": "IRS-2026-9901"
+          },
+          "carrierCompany": {
+            "type": "string",
+            "example": "Yurtiçi Kargo"
+          },
+          "trackingNumber": {
+            "type": "string",
+            "example": "YK-123456789"
+          },
+          "recipientPerson": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "recipientPhone": {
+            "type": "string",
+            "example": "0532 111 22 33"
+          },
+          "deliveryAddress": {
+            "type": "string",
+            "example": "Büyükdere Cad. No:123 Şişli / İstanbul"
+          },
+          "documentUrl": {
+            "type": "string",
+            "example": "/api/v1/stock/documents/teslim-belgesi.pdf"
+          },
+          "documentName": {
+            "type": "string",
+            "example": "teslim-belgesi.pdf"
+          }
+        }
+      },
+      "UpdateStockExitShippingDto": {
+        "type": "object",
+        "properties": {
+          "carrierCompany": {
+            "type": "string",
+            "example": "Yurtiçi Kargo"
+          },
+          "trackingNumber": {
+            "type": "string",
+            "example": "YK-123456789"
+          },
+          "waybillNumber": {
+            "type": "string",
+            "example": "IRS-2026-9901"
+          },
+          "recipientPerson": {
+            "type": "string",
+            "example": "Ahmet Yılmaz"
+          },
+          "recipientPhone": {
+            "type": "string",
+            "example": "0532 111 22 33"
+          },
+          "deliveryAddress": {
+            "type": "string",
+            "example": "Büyükdere Cad. No:123 Şişli / İstanbul"
+          }
+        }
+      },
+      "CancelStockExitDto": {
+        "type": "object",
+        "properties": {
+          "cancelReason": {
+            "type": "string",
+            "example": "Sipariş müşteri tarafından iptal edildi."
+          }
+        },
+        "required": [
+          "cancelReason"
+        ]
+      },
+      "CreateFaultRecordDto": {
+        "type": "object",
+        "properties": {
+          "serialId": {
+            "type": "string",
+            "description": "Arızalı ürünün Seri Numarası kaydının ID değeri",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "customerId": {
+            "type": "string",
+            "description": "Müşteri ID (Boş bırakılırsa seriye atanmış mevcut müşteri kullanılır)",
+            "example": "550e8400-e29b-41d4-a716-446655440001"
+          },
+          "contactPerson": {
+            "type": "string",
+            "example": "Ahmet Yılmaz",
+            "description": "Cihazı teslim eden veya irtibat kurulacak kişi"
+          },
+          "contactPhone": {
+            "type": "string",
+            "example": "0532 111 22 33",
+            "description": "İrtibat telefon numarası"
+          },
+          "reportedProblem": {
+            "type": "string",
+            "example": "Cihaz güç almıyor, adaptör takıldığında LED yanıp sönüyor.",
+            "description": "Müşteri tarafından bildirilen arıza veya şikayet"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ],
+            "default": "MEDIUM"
+          }
+        },
+        "required": [
+          "serialId",
+          "reportedProblem"
+        ]
+      },
+      "FaultSerialProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code"
+        ]
+      },
+      "FaultSerialDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "macAddress": {
+            "type": "string"
+          },
+          "customerWarrantyEnd": {
+            "type": "string"
+          },
+          "supplierWarrantyEnd": {
+            "type": "string"
+          },
+          "product": {
+            "$ref": "#/components/schemas/FaultSerialProductDto"
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "product"
+        ]
+      },
+      "FaultCustomerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "companyName"
+        ]
+      },
+      "FaultUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email"
+        ]
+      },
+      "FaultRecordResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "faultNumber": {
+            "type": "string"
+          },
+          "serialId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "reportedProblem": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECEIVED",
+              "IN_INSPECTION",
+              "WAITING_PARTS",
+              "RESOLVED",
+              "REPLACED",
+              "SCRAPPED",
+              "RETURNED_TO_CUSTOMER"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ]
+          },
+          "underCustomerWarranty": {
+            "type": "boolean"
+          },
+          "underSupplierWarranty": {
+            "type": "boolean"
+          },
+          "technicianNotes": {
+            "type": "string"
+          },
+          "resolutionSummary": {
+            "type": "string"
+          },
+          "receivedDate": {
+            "type": "string"
+          },
+          "resolvedDate": {
+            "type": "string"
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "serial": {
+            "$ref": "#/components/schemas/FaultSerialDto"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/FaultCustomerDto"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/FaultUserDto"
+          }
+        },
+        "required": [
+          "id",
+          "faultNumber",
+          "serialId",
+          "reportedProblem",
+          "status",
+          "priority",
+          "underCustomerWarranty",
+          "underSupplierWarranty",
+          "receivedDate",
+          "createdById",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "FaultsPaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FaultRecordResponseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "UpdateFaultStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "RECEIVED",
+              "IN_INSPECTION",
+              "WAITING_PARTS",
+              "RESOLVED",
+              "REPLACED",
+              "SCRAPPED",
+              "RETURNED_TO_CUSTOMER"
+            ],
+            "description": "Yeni arıza statüsü"
+          },
+          "technicianNotes": {
+            "type": "string",
+            "example": "Güç katındaki kondansatör arızalı tespit edildi, değiştirildi.",
+            "description": "Teknisyen inceleme ve operasyon notları"
+          },
+          "resolutionSummary": {
+            "type": "string",
+            "example": "Cihaz onarıldı, 24 saat yük testinden başarıyla geçti.",
+            "description": "Sonuç ve çözüm özeti"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "WarehouseStockReportItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productCode": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "type": "string"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "minStockLevel": {
+            "type": "number"
+          },
+          "isCritical": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId",
+          "productName",
+          "productCode",
+          "warehouseId",
+          "warehouseName",
+          "quantity",
+          "isCritical",
+          "unit"
+        ]
+      },
+      "SerialTimelineEventDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "performedBy": {
+            "type": "string"
+          },
+          "party": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "type",
+          "title",
+          "description"
+        ]
+      },
+      "SerialTimelineResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "macAddress": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productCode": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "customerWarrantyEnd": {
+            "type": "string"
+          },
+          "supplierWarrantyEnd": {
+            "type": "string"
+          },
+          "currentCustomer": {
+            "type": "string"
+          },
+          "currentWarehouse": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SerialTimelineEventDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "status",
+          "productName",
+          "productCode",
+          "timeline"
+        ]
+      },
+      "WarrantyReportItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "serial": {
+            "type": "string"
+          },
+          "macAddress": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productCode": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "daysLeft": {
+            "type": "number"
+          },
+          "statusText": {
+            "type": "string"
+          },
+          "partyName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "serial",
+          "productName",
+          "productCode",
+          "endDate",
+          "daysLeft",
+          "statusText",
+          "partyName"
+        ]
+      },
+      "StockMovementReportItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productCode": {
+            "type": "string"
+          },
+          "warehouseName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "type",
+          "productName",
+          "productCode",
+          "warehouseName",
+          "quantity",
+          "referenceNumber",
+          "description",
+          "userName"
+        ]
+      },
+      "SupplierEntriesReportItemDto": {
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string"
+          },
+          "supplierCode": {
+            "type": "string"
+          },
+          "supplierName": {
+            "type": "string"
+          },
+          "contactPerson": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "entryCount": {
+            "type": "number"
+          },
+          "totalItemsReceived": {
+            "type": "number"
+          },
+          "lastEntryDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "supplierId",
+          "supplierCode",
+          "supplierName",
+          "contactPerson",
+          "phone",
+          "entryCount",
+          "totalItemsReceived"
+        ]
+      },
+      "CustomerExitsReportItemDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "taxNumber": {
+            "type": "string"
+          },
+          "shipmentCount": {
+            "type": "number"
+          },
+          "totalItemsShipped": {
+            "type": "number"
+          },
+          "lastShipmentDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId",
+          "customerName",
+          "taxNumber",
+          "shipmentCount",
+          "totalItemsShipped"
+        ]
+      },
+      "FaultStatisticsReportDto": {
+        "type": "object",
+        "properties": {
+          "totalFaults": {
+            "type": "number"
+          },
+          "underCustomerWarrantyCount": {
+            "type": "number"
+          },
+          "outOfWarrantyCount": {
+            "type": "number"
+          },
+          "resolvedCount": {
+            "type": "number"
+          },
+          "replacedCount": {
+            "type": "number"
+          },
+          "scrappedCount": {
+            "type": "number"
+          },
+          "inProgressCount": {
+            "type": "number"
+          },
+          "byStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "byPriority": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "totalFaults",
+          "underCustomerWarrantyCount",
+          "outOfWarrantyCount",
+          "resolvedCount",
+          "replacedCount",
+          "scrappedCount",
+          "inProgressCount",
+          "byStatus",
+          "byPriority"
+        ]
+      },
+      "ApprovalSettingRoleDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "ApprovalSettingUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email"
+        ]
+      },
+      "ApprovalSettingResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "step": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ApprovalSettingRoleDto"
+          },
+          "user": {
+            "$ref": "#/components/schemas/ApprovalSettingUserDto"
+          }
+        },
+        "required": [
+          "id",
+          "step",
+          "name",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateApprovalSettingDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "number",
+            "example": 1,
+            "description": "Onay adım sırası (1, 2, 3...)"
+          },
+          "name": {
+            "type": "string",
+            "example": "1. Adım: Depo Sorumlusu Onayı",
+            "description": "Onay adımının adı veya başlığı"
+          },
+          "roleId": {
+            "type": "string",
+            "example": "uuid-role-id",
+            "description": "Bu adımı onaylamaya yetkili rol (Boş bırakılırsa tüm yöneticiler onaylayabilir)"
+          },
+          "userId": {
+            "type": "string",
+            "example": "uuid-user-id",
+            "description": "Bu adımı onaylamaya yetkili belirli kullanıcı"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "step",
+          "name"
+        ]
+      },
+      "UpdateApprovalSettingDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "1. Adım: Depo Müdürü Onayı"
+          },
+          "roleId": {
+            "type": "string",
+            "example": "uuid-role-id"
+          },
+          "userId": {
+            "type": "string",
+            "example": "uuid-user-id"
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
           }
         }
       }

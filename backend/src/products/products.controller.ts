@@ -24,6 +24,7 @@ import {
   ProductDto,
   PaginatedProductResponseDto,
   ProductSalesStatDto,
+  AddBarcodeDto,
 } from './dto/product.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -74,6 +75,35 @@ export class ProductsController {
   @ApiResponse({ status: 200, type: ProductDto })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
+  }
+
+  @Post(':id/barcodes')
+  @Roles(Role.SALES_MANAGER, Role.SALES_REP)
+  @ApiOperation({ summary: 'Ürüne Barkod Ekle' })
+  @ApiParam({ name: 'id', description: 'Ürün ID' })
+  addBarcode(
+    @Param('id') id: string,
+    @Body() dto: AddBarcodeDto,
+  ) {
+    return this.productsService.addBarcode(id, dto.barcode, !!dto.isDefault);
+  }
+
+  @Delete(':id/barcodes/:barcodeId')
+  @Roles(Role.SALES_MANAGER, Role.SALES_REP)
+  @ApiOperation({ summary: 'Üründen Barkod Sil' })
+  @ApiParam({ name: 'id', description: 'Ürün ID' })
+  @ApiParam({ name: 'barcodeId', description: 'Barkod ID' })
+  removeBarcode(@Param('id') id: string, @Param('barcodeId') barcodeId: string) {
+    return this.productsService.removeBarcode(id, barcodeId);
+  }
+
+  @Patch(':id/barcodes/:barcodeId/set-default')
+  @Roles(Role.SALES_MANAGER, Role.SALES_REP)
+  @ApiOperation({ summary: 'Barkodu Varsayılan Yap' })
+  @ApiParam({ name: 'id', description: 'Ürün ID' })
+  @ApiParam({ name: 'barcodeId', description: 'Barkod ID' })
+  setDefaultBarcode(@Param('id') id: string, @Param('barcodeId') barcodeId: string) {
+    return this.productsService.setDefaultBarcode(id, barcodeId);
   }
 
   @Delete(':id')

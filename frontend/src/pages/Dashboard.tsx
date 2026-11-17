@@ -23,6 +23,7 @@ import {
   Coins,
   Award,
   Building2,
+  Boxes,
 } from 'lucide-react';
 import {
   useAnalyticsControllerGetDashboardSummary,
@@ -241,8 +242,8 @@ export const DashboardPage: React.FC = () => {
       {/* ===================== 1. SATIŞ MÜDÜRÜ GÖRÜNÜMÜ ===================== */}
       {isManager && (
         <>
-          {/* Üst Yönetici 4 Ana KPI Kartı */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Üst Yönetici 5 Ana KPI Kartı */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {/* KPI 1: Toplam & Bu Ayki Ciro (TRY ve USD Dinamik) */}
             <div className="bg-card p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
@@ -384,6 +385,54 @@ export const DashboardPage: React.FC = () => {
                 <span className="font-bold text-navy-700 dark:text-navy-300">
                   {analyticsLoading ? '...' : analytics?.kpis.leadConversionRate}
                 </span>
+              </div>
+            </div>
+
+            {/* KPI 5: Depo Stok & Envanter Değeri */}
+            <div className="bg-card p-5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden group">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-600" />
+              <div className="flex items-center justify-between text-muted-foreground mb-2">
+                <span className="text-xs font-semibold">Depo Stok Değeri</span>
+                <Boxes className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+
+              {displayCurrency === 'TRY' ? (
+                <>
+                  <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    {analyticsLoading ? '...' : formatMoney((analytics?.kpis as any)?.totalStockValueTry || '0.00', 'TRY')}
+                  </div>
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                    ${Number((analytics?.kpis as any)?.totalStockValueUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
+                    ${analyticsLoading ? '...' : Number((analytics?.kpis as any)?.totalStockValueUsd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                  </div>
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                    {analyticsLoading ? '...' : formatMoney((analytics?.kpis as any)?.totalStockValueTry || '0.00', 'TRY')}
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                <Link
+                  to="/stock/reports"
+                  className="text-muted-foreground hover:text-foreground transition-colors font-medium hover:underline"
+                >
+                  {(analytics?.kpis as any)?.totalStockQuantity || 0} Kalem Fiziksel
+                </Link>
+                {Number((analytics?.kpis as any)?.pendingExitsCount || 0) > 0 ? (
+                  <Link
+                    to="/stock/exits"
+                    className="font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1"
+                  >
+                    <span>{(analytics?.kpis as any)?.pendingExitsCount} Sevkiyat Onayda</span>
+                  </Link>
+                ) : (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">Stok Tam</span>
+                )}
               </div>
             </div>
           </div>

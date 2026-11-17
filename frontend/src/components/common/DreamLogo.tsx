@@ -32,10 +32,10 @@ export const DreamLogo: React.FC<DreamLogoProps> = ({
       {showSubtitle && (
         <div className="flex flex-col">
           <span className="text-xs font-bold text-navy-800 dark:text-navy-300 tracking-tight leading-tight">
-            CRM Platformu
+            ERP Platformu
           </span>
           <span className="text-[10px] text-muted-foreground leading-tight">
-            Satış & Müşteri Yönetimi
+            Satış, Stok & Kurumsal Yönetim
           </span>
         </div>
       )}

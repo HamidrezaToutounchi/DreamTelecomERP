@@ -10,5 +10,6 @@ export interface SalesByRepItemDto {
   repId: string;
   repName: string;
   totalSalesAmount: string;
+  totalSalesAmountUsd?: string;
   salesCount: number;
 }

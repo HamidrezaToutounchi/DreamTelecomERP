@@ -23,6 +23,19 @@ import {
   DollarSign,
   BadgePercent,
   Check,
+  Package,
+  Boxes,
+  Truck,
+  AlertTriangle,
+  Layers,
+  Wrench,
+  PackageCheck,
+  AlertCircle,
+  Send,
+  ArrowRight,
+  ExternalLink,
+  ShieldAlert,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   PieChart,
@@ -39,8 +52,13 @@ import {
   useQuotesControllerFindAll,
   useSalesControllerFindAll,
   useCompaniesControllerFindAll,
+  useWarehousesControllerFindAll,
+  useStockControllerFindAllExits,
+  useStockControllerGetCriticalStockReport,
+  useStockControllerGetWarehouseStockReport,
+  useStockControllerGetFaultStatisticsReport,
 } from '@/api/generated';
-import { formatMoney } from '@/lib/formatters';
+import { formatMoney, formatDate } from '@/lib/formatters';
 import { downloadQuotePdf } from '@/lib/pdf';
 import { QuoteStatusBadge } from '@/components/quotes/QuoteStatusBadge';
 import { Link } from '@tanstack/react-router';
@@ -116,8 +134,63 @@ export const AnalyticsPage: React.FC = () => {
     },
   );
 
+  // Yönetici Rapor Modülü: Teklif & Satış vs Stok & Kargo
+  const [reportModule, setReportModule] = useState<'SALES_QUOTES' | 'STOCK_OPERATIONS'>('SALES_QUOTES');
+
+  // Stok & Sevkiyat Yönetici Raporları Verileri
+  const { data: pendingExitsResponse, isLoading: isPendingExitsLoading } = useStockControllerFindAllExits(
+    { status: 'PENDING_APPROVAL' as any, pageSize: 20 },
+    { query: { refetchInterval: 15000 } }
+  );
+  const { data: criticalStockData, isLoading: isCriticalStockLoading } = useStockControllerGetCriticalStockReport();
+  const { data: warehouseStockData, isLoading: isWarehouseStockLoading } = useStockControllerGetWarehouseStockReport();
+  const { data: faultStatsData } = useStockControllerGetFaultStatisticsReport();
+  const { data: warehousesResponse } = useWarehousesControllerFindAll({});
+  const warehousesList = (warehousesResponse as any) || [];
+
   const reports = reportsData as any;
   const usdRate = Number(reports?.salesMetrics?.usdRate || 50.18);
+
+  // Stok & Sevkiyat Hesaplamaları
+  const pendingExits = (pendingExitsResponse as any)?.data || [];
+  const pendingExitsCount = (pendingExitsResponse as any)?.meta?.totalRowCount ?? pendingExits.length ?? 0;
+  const criticalStockList = (criticalStockData as any) || [];
+  const criticalCount = criticalStockList.length;
+
+  const rawStockItems = (warehouseStockData as any[]) || [];
+  const totalStockQuantity = rawStockItems.reduce((acc, it) => acc + Number(it.quantity || 0), 0);
+  const totalStockValueTry = rawStockItems.reduce((acc, it) => {
+    const val = Number(it.totalValue ?? (Number(it.quantity || 0) * Number(it.unitPrice || 0)));
+    return acc + (it.currency === 'USD' ? val * usdRate : val);
+  }, 0);
+  const totalStockValueUsd = totalStockValueTry / (usdRate || 50.18);
+
+  // Depo bazlı özet gruplama
+  const warehouseSummariesMap = new Map<string, {
+    warehouseId: string;
+    warehouseName: string;
+    productCount: number;
+    totalQuantity: number;
+    totalValueTry: number;
+  }>();
+
+  for (const it of rawStockItems) {
+    const wId = it.warehouseId || it.warehouseName || 'default';
+    const existing = warehouseSummariesMap.get(wId) || {
+      warehouseId: wId,
+      warehouseName: it.warehouseName || 'Depo',
+      productCount: 0,
+      totalQuantity: 0,
+      totalValueTry: 0,
+    };
+    existing.productCount += 1;
+    existing.totalQuantity += Number(it.quantity || 0);
+    const lineVal = Number(it.totalValue ?? (Number(it.quantity || 0) * Number(it.unitPrice || 0)));
+    existing.totalValueTry += (it.currency === 'USD' ? lineVal * usdRate : lineVal);
+    warehouseSummariesMap.set(wId, existing);
+  }
+  const warehouseSummaries = Array.from(warehouseSummariesMap.values());
+  const totalFaultsCount = (faultStatsData as any)?.totalFaults || 0;
 
   // Seçili temsilci bilgisi
   const selectedRep = reps?.find((r) => r.id === repId);
@@ -303,10 +376,10 @@ export const AnalyticsPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-navy-700 dark:text-navy-400" />
-            <span>Yönetici Performans & Detaylı Raporlar</span>
+            <span>Yönetici ERP Raporlama & Operasyon Merkezi</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Tüm yöneticilerin ve temsilcilerin teklif, satış ve ciro performans verileri.
+            Satış, teklif analitiği, depo stok mevcudu ve onay bekleyen kargo sevkiyatları.
           </p>
         </div>
 
@@ -349,7 +422,175 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtre Barı */}
+      {/* Yönetici Modül Kartları (Kutu Kutu ERP Raporlama Merkezi) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* KUTU 1: Teklif & Satış Performans Analizi */}
+        <div
+          onClick={() => setReportModule('SALES_QUOTES')}
+          className={cn(
+            'p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden group shadow-xs select-none',
+            reportModule === 'SALES_QUOTES'
+              ? 'bg-gradient-to-br from-navy-50/80 via-white to-blue-50/50 dark:from-navy-950/70 dark:via-slate-900 dark:to-blue-950/40 border-navy-700 dark:border-navy-400 shadow-md ring-2 ring-navy-600/10'
+              : 'bg-card border-slate-200 dark:border-slate-800 hover:border-navy-300 dark:hover:border-navy-700 hover:shadow-sm'
+          )}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all',
+                  reportModule === 'SALES_QUOTES'
+                    ? 'bg-navy-700 text-white shadow-xs'
+                    : 'bg-navy-50 text-navy-700 dark:bg-navy-950 dark:text-navy-300'
+                )}
+              >
+                <FileText className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-foreground tracking-tight">
+                    Teklif & Satış Raporları
+                  </h3>
+                  {reportModule === 'SALES_QUOTES' ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-navy-100 text-navy-800 dark:bg-navy-950 dark:text-navy-300 border border-navy-200 dark:border-navy-800">
+                      Aktif Görünüm
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Teklif dönüşüm oranları, temsilci satış performansları, ciro ve faturalama icmalleri.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-xs font-bold text-navy-700 dark:text-navy-300 group-hover:underline flex items-center gap-1">
+                İncele
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] text-muted-foreground font-semibold block">Toplam Teklif</span>
+              <span className="text-sm font-extrabold text-foreground">
+                {reports?.quoteMetrics?.totalQuotes || 0} Adet
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] text-muted-foreground font-semibold block">Kazanma Oranı</span>
+              <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+                %{reports?.quoteMetrics?.winRatePercentage || '0'}
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] text-muted-foreground font-semibold block">Onaylanan Ciro</span>
+              <span className="text-sm font-extrabold text-navy-700 dark:text-navy-300 truncate block">
+                {displayCurrency === 'TRY'
+                  ? formatMoney(reports?.salesMetrics?.totalApprovedRevenueTry || 0, 'TRY')
+                  : formatMoney(reports?.salesMetrics?.totalApprovedRevenueUsd || 0, 'USD')}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* KUTU 2: Stok, Depo & Kargo Analizi */}
+        <div
+          onClick={() => setReportModule('STOCK_OPERATIONS')}
+          className={cn(
+            'p-5 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden group shadow-xs select-none',
+            reportModule === 'STOCK_OPERATIONS'
+              ? 'bg-gradient-to-br from-amber-50/80 via-white to-blue-50/50 dark:from-amber-950/70 dark:via-slate-900 dark:to-blue-950/40 border-amber-600 dark:border-amber-400 shadow-md ring-2 ring-amber-600/10'
+              : 'bg-card border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-sm'
+          )}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all',
+                  reportModule === 'STOCK_OPERATIONS'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                )}
+              >
+                <Package className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-foreground tracking-tight">
+                    Stok, Depo & Kargo Analizi
+                  </h3>
+                  {pendingExitsCount > 0 ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500 text-white animate-pulse">
+                      {pendingExitsCount} Onay Bekliyor
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                      Güncel
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Onay bekleyen kargolar, depo dolulukları, kritik stok seviyeleri ve hareket defteri.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-xs font-bold text-amber-700 dark:text-amber-300 group-hover:underline flex items-center gap-1">
+                İncele
+                <ArrowRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div
+              className={cn(
+                'p-2.5 rounded-lg border',
+                pendingExitsCount > 0
+                  ? 'bg-amber-50/70 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
+                  : 'bg-white/80 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800'
+              )}
+            >
+              <span className="text-[10px] text-amber-800 dark:text-amber-300 font-semibold block">
+                Onay Bekleyen Kargo
+              </span>
+              <span className="text-sm font-extrabold text-amber-700 dark:text-amber-300">
+                {pendingExitsCount} Fiş
+              </span>
+            </div>
+            <div
+              className={cn(
+                'p-2.5 rounded-lg border',
+                criticalCount > 0
+                  ? 'bg-rose-50/70 border-rose-200 dark:bg-rose-950/40 dark:border-rose-800'
+                  : 'bg-white/80 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800'
+              )}
+            >
+              <span className="text-[10px] text-rose-800 dark:text-rose-300 font-semibold block">
+                Kritik Stok Uyarısı
+              </span>
+              <span className="text-sm font-extrabold text-rose-600 dark:text-rose-400">
+                {criticalCount} Ürün
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-white/80 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] text-muted-foreground font-semibold block">Toplam Stok Değeri</span>
+              <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 truncate block">
+                {displayCurrency === 'TRY' ? formatMoney(totalStockValueTry, 'TRY') : formatMoney(totalStockValueUsd, 'USD')}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= MODÜL 1: TEKLİF & SATIŞ RAPORLARI ================= */}
+      {reportModule === 'SALES_QUOTES' && (
+        <>
+          {/* Filtre Barı */}
       <div className="bg-card p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -1167,6 +1408,411 @@ export const AnalyticsPage: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+    </>
+  )}
+
+      {/* ================= MODÜL 2: STOK, DEPO & KARGO SEVKİYAT ANALİZİ ================= */}
+      {reportModule === 'STOCK_OPERATIONS' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Üst Operasyonel KPI Kartları */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Onay Bekleyen Kargolar */}
+            <div className="bg-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Onay Bekleyen Kargo
+                </span>
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                  <Truck className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-amber-600 dark:text-amber-400">
+                    {pendingExitsCount}
+                  </span>
+                  <span className="text-xs font-bold text-muted-foreground">Sevkiyat Fişi</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {pendingExitsCount > 0
+                    ? 'Yönetici onayı bekleyen müşteri veya transfer sevkiyatları.'
+                    : 'Onay bekleyen tüm çıkışlar tamamlandı.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Kritik Stok Alarmları */}
+            <div className="bg-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-rose-500" />
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Kritik Stok Uyarısı
+                </span>
+                <div className="p-2 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-rose-600 dark:text-rose-400">
+                    {criticalCount}
+                  </span>
+                  <span className="text-xs font-bold text-muted-foreground">Ürün Kalemi</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {criticalCount > 0
+                    ? 'Minimum stok eşiğinin altına düşen ürünler (Tedarik gerekir).'
+                    : 'Tüm ürün stokları güvenli seviyede.'}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Depolardaki Toplam Stok Değeri & Mevcut */}
+            <div className="bg-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-emerald-500" />
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Toplam Stok Değeri
+                </span>
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                  <Layers className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                    {displayCurrency === 'TRY' ? formatMoney(totalStockValueTry, 'TRY') : formatMoney(totalStockValueUsd, 'USD')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1 flex items-center justify-between">
+                  <span>Toplam {totalStockQuantity.toLocaleString('tr-TR')} Kalem Fiziksel Mevcut</span>
+                  <span className="font-mono text-[10px] text-slate-400">
+                    {displayCurrency === 'TRY'
+                      ? `≈ $${totalStockValueUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+                      : `≈ ${formatMoney(totalStockValueTry, 'TRY')}`}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Servis & Arıza Kayıtları */}
+            <div className="bg-card p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-500" />
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Arıza & Teknik Servis
+                </span>
+                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400">
+                  <Wrench className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">
+                    {totalFaultsCount}
+                  </span>
+                  <span className="text-xs font-bold text-muted-foreground">RMA / Cihaz</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Servise kabul edilen, onarımda veya tedarikçideki cihazlar.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 1. BÖLÜM: 🚨 ONAY BEKLEYEN SEVKİYAT VE KARGO TALEPLERİ */}
+          <div className="bg-card rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/40">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-foreground">
+                      Onay Bekleyen Kargo ve Çıkış Talepleri
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white shadow-xs">
+                      {pendingExitsCount} Talep
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Depocunun hazırladığı ve yönetici onayı gerektiren çıkış fişleri.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                to="/stock/exits"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-navy-700 hover:bg-navy-800 text-white font-bold text-xs transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+              >
+                <span>Stok Çıkış Modülüne Git</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {isPendingExitsLoading ? (
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                Sevkiyat talepleri yükleniyor...
+              </div>
+            ) : pendingExits.length === 0 ? (
+              <div className="p-10 text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-foreground">
+                  Harika! Onay Bekleyen Sevkiyat Yok
+                </h4>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                  Şu anda onay bekleyen herhangi bir kargo veya depo çıkış talebi bulunmuyor. Tüm talepler onaylanmış veya sevk edilmiştir.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100/70 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-muted-foreground uppercase text-[11px] font-bold">
+                    <tr>
+                      <th className="px-4 py-3">Fiş Numarası</th>
+                      <th className="px-4 py-3">Çıkış Tipi</th>
+                      <th className="px-4 py-3">Çıkış Deposu</th>
+                      <th className="px-4 py-3">Müşteri / Alıcı</th>
+                      <th className="px-4 py-3">Kargo & İrsaliye</th>
+                      <th className="px-4 py-3">Talep Eden / Tarih</th>
+                      <th className="px-4 py-3 text-right">Aksiyon</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                    {pendingExits.map((exit: any) => (
+                      <tr
+                        key={exit.id}
+                        className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
+                      >
+                        <td className="px-4 py-3 font-mono font-bold text-navy-700 dark:text-navy-300">
+                          {exit.exitNumber}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-navy-50 text-navy-800 dark:bg-navy-950 dark:text-navy-300 border border-navy-200 dark:border-navy-800">
+                            {exit.type === 'SALE_SHIPMENT'
+                              ? 'Müşteri Sevkiyatı'
+                              : exit.type === 'TRANSFER'
+                              ? 'Depolar Arası Transfer'
+                              : exit.type === 'SERVICE_OUT'
+                              ? 'Servis / Arıza Çıkışı'
+                              : exit.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-foreground">
+                          {exit.warehouse?.name || 'Ana Depo'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-foreground">
+                            {exit.customer?.companyName || exit.recipientPerson || 'Belirtilmemiş'}
+                          </div>
+                          {exit.recipientPhone && (
+                            <div className="text-[10px] text-muted-foreground font-mono">
+                              {exit.recipientPhone}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono">
+                          {exit.carrierCompany || 'Kargo Belirtilmedi'}
+                          {exit.waybillNumber && ` (İrs: ${exit.waybillNumber})`}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          <div className="font-semibold text-foreground">
+                            {exit.createdBy?.fullName || 'Kullanıcı'}
+                          </div>
+                          <div className="text-[10px] font-mono">
+                            {formatDate(exit.createdAt, 'dd.MM.yyyy HH:mm')}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            to="/stock/exits"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                          >
+                            <span>İncele / Onayla</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* 2. BÖLÜM: ⚠️ KRİTİK SEVİYEDEKİ STOK KALEMLERİ & DEPONUN MEVCUTLARI */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Kritik Stok Tablosu */}
+            <div className="lg:col-span-2 bg-card rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                  <h3 className="text-sm font-extrabold text-foreground">
+                    Kritik Seviyenin Altındaki Stoklar
+                  </h3>
+                  {criticalCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                      {criticalCount} Kalem
+                    </span>
+                  )}
+                </div>
+                <Link
+                  to="/stock/reports"
+                  className="text-xs font-bold text-navy-700 dark:text-navy-300 hover:underline flex items-center gap-1"
+                >
+                  Tümünü Gör
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {isCriticalStockLoading ? (
+                <div className="p-6 text-center text-xs text-muted-foreground">
+                  Kritik stoklar yükleniyor...
+                </div>
+              ) : criticalStockList.length === 0 ? (
+                <div className="p-8 text-center text-xs text-muted-foreground">
+                  Kritik seviyenin altında ürün bulunmamaktadır.
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-80">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-muted-foreground font-bold">
+                      <tr>
+                        <th className="px-4 py-2.5">Ürün</th>
+                        <th className="px-4 py-2.5">Depo</th>
+                        <th className="px-4 py-2.5 text-center">Mevcut Stok</th>
+                        <th className="px-4 py-2.5 text-center">Kritik Eşik</th>
+                        <th className="px-4 py-2.5 text-right">Durum</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {criticalStockList.slice(0, 8).map((item: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30">
+                          <td className="px-4 py-2.5">
+                            <div className="font-bold text-foreground">{item.productName}</div>
+                            <div className="text-[10px] text-muted-foreground font-mono">
+                              {item.productSku}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2.5 text-muted-foreground font-medium">
+                            {item.warehouseName}
+                          </td>
+                          <td className="px-4 py-2.5 text-center font-bold text-rose-600 dark:text-rose-400 font-mono">
+                            {item.quantity} {item.unit}
+                          </td>
+                          <td className="px-4 py-2.5 text-center font-mono text-muted-foreground">
+                            {item.minQuantity} {item.unit}
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                              Tedarik Gerekli
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Depo Bazlı Kapasite & Hızlı Eylemler */}
+            <div className="space-y-4">
+              <div className="bg-card rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-navy-700 dark:text-navy-400" />
+                    <span>Depoların Mevcut Durumu</span>
+                  </h4>
+                  <span className="text-[10px] font-bold text-muted-foreground">
+                    {warehousesList.length} Depo
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {warehouseSummaries.length > 0 ? (
+                    warehouseSummaries.map((wh) => (
+                      <div
+                        key={wh.warehouseId}
+                        className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <span className="font-bold text-foreground block">{wh.warehouseName}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {wh.productCount} Çeşit Ürün • {wh.totalQuantity.toLocaleString('tr-TR')} Adet
+                          </span>
+                        </div>
+                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-xs">
+                          {formatMoney(wh.totalValueTry, 'TRY')}
+                        </span>
+                      </div>
+                    ))
+                  ) : warehousesList.length > 0 ? (
+                    warehousesList.map((wh: any) => (
+                      <div
+                        key={wh.id}
+                        className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <span className="font-bold text-foreground block">{wh.name}</span>
+                          <span className="text-[10px] text-muted-foreground">0 Çeşit Ürün</span>
+                        </div>
+                        <span className="font-extrabold text-navy-700 dark:text-navy-300 font-mono text-xs">
+                          0 Adet
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-xs text-muted-foreground">Depo kaydı bulunamadı.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Hızlı Modül Butonları */}
+              <div className="bg-gradient-to-br from-navy-900 to-navy-800 text-white rounded-2xl p-5 shadow-sm space-y-3">
+                <h4 className="text-sm font-extrabold flex items-center gap-2">
+                  <Boxes className="w-4 h-4 text-amber-400" />
+                  <span>Hızlı ERP Stok Eylemleri</span>
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <Link
+                    to="/stock/exits"
+                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-semibold flex items-center gap-1.5"
+                  >
+                    <Truck className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Stok Çıkışı</span>
+                  </Link>
+                  <Link
+                    to="/stock/entries"
+                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-semibold flex items-center gap-1.5"
+                  >
+                    <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Mal Kabulü</span>
+                  </Link>
+                  <Link
+                    to="/stock/reports"
+                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-semibold flex items-center gap-1.5"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Rapor Defteri</span>
+                  </Link>
+                  <Link
+                    to="/stock/faults"
+                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all font-semibold flex items-center gap-1.5"
+                  >
+                    <Wrench className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Teknik Servis</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ===================== 5. TEMSİLCİ DETAYLI PERFORMANS & KARNE MODALI ===================== */}

@@ -102,19 +102,30 @@ export class PdfService {
 
     if (includeImages) {
       const logoFilename = isTescom ? 'tescom-logo.png' : 'logo.png';
-      const logoPath = path.join(process.cwd(), 'assets', logoFilename);
-      if (fs.existsSync(logoPath)) {
-        try {
-          const logoBuffer = fs.readFileSync(logoPath);
-          const mime = this.isValidPdfImage(logoBuffer);
-          if (mime) {
-            logoImageDef = {
-              image: `data:${mime};base64,${logoBuffer.toString('base64')}`,
-              width: isTescom ? 150 : 140,
-            };
+      const candidatePaths = [
+        path.join(process.cwd(), 'assets', logoFilename),
+        path.join(process.cwd(), 'backend', 'assets', logoFilename),
+        path.resolve(__dirname, '..', '..', 'assets', logoFilename),
+        path.resolve(__dirname, '..', '..', 'backend', 'assets', logoFilename),
+        path.resolve(__dirname, '..', '..', '..', 'backend', 'assets', logoFilename),
+        path.resolve(__dirname, '..', '..', '..', 'frontend', 'public', logoFilename),
+      ];
+
+      for (const logoPath of candidatePaths) {
+        if (fs.existsSync(logoPath)) {
+          try {
+            const logoBuffer = fs.readFileSync(logoPath);
+            const mime = this.isValidPdfImage(logoBuffer);
+            if (mime) {
+              logoImageDef = {
+                image: `data:${mime};base64,${logoBuffer.toString('base64')}`,
+                width: isTescom ? 150 : 140,
+              };
+              break;
+            }
+          } catch (err) {
+            this.logger.warn(`${logoFilename} okunamadı, metin kullanılacak`);
           }
-        } catch (err) {
-          this.logger.warn(`${logoFilename} okunamadı, metin kullanılacak`);
         }
       }
     }

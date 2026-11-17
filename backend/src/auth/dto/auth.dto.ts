@@ -33,6 +33,27 @@ export class UserProfileDto {
   @ApiProperty({ example: true })
   isActive: boolean;
 
+  @ApiPropertyOptional({ example: false })
+  isSuperAdmin?: boolean;
+
+  @ApiPropertyOptional({ example: 'b3f5e123-...' })
+  appRoleId?: string | null;
+
+  @ApiPropertyOptional({ example: 'Depo Sorumlusu' })
+  appRoleName?: string | null;
+
+  @ApiPropertyOptional({ description: 'Kullanıcının modül bazlı yetkileri haritası' })
+  permissions?: Record<
+    string,
+    {
+      canView: boolean;
+      canCreate: boolean;
+      canEdit: boolean;
+      canDelete: boolean;
+      canCancel: boolean;
+    }
+  >;
+
   @ApiProperty()
   createdAt: Date;
 }

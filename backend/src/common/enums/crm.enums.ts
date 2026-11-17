@@ -47,3 +47,31 @@ export enum PaymentStatus {
   PARTIAL = 'PARTIAL',
   PAID = 'PAID',
 }
+
+export enum AppModule {
+  // CRM Modülleri
+  LEADS = 'LEADS',
+  CUSTOMERS = 'CUSTOMERS',
+  QUOTES = 'QUOTES',
+  SALES = 'SALES',
+  PRODUCTS = 'PRODUCTS',
+  REPORTS = 'REPORTS',
+  // Stok & Sevkiyat Modülleri
+  STOCK_VIEW = 'STOCK_VIEW',
+  STOCK_ENTRY = 'STOCK_ENTRY',
+  STOCK_EXIT = 'STOCK_EXIT',
+  STOCK_ADJUSTMENT = 'STOCK_ADJUSTMENT',
+  WAREHOUSES = 'WAREHOUSES',
+  SUPPLIERS = 'SUPPLIERS',
+  FAULTS = 'FAULTS',
+  STOCK_REPORTS = 'STOCK_REPORTS',
+  // Yönetim Modülleri
+  USERS = 'USERS',
+  ROLES = 'ROLES',
+  APPROVAL_SETTINGS = 'APPROVAL_SETTINGS',
+  COMPANIES = 'COMPANIES',
+  CATEGORIES = 'CATEGORIES',
+  AUDIT_LOGS = 'AUDIT_LOGS',
+}
+
+export type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'cancel';

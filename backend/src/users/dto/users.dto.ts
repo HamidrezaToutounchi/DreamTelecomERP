@@ -27,6 +27,11 @@ export class CreateUserDto {
   @IsEnum(Role)
   @IsOptional()
   role?: Role = Role.SALES_REP;
+
+  @ApiPropertyOptional({ type: String, nullable: true, example: 'app-role-uuid', description: 'Atanacak sistem / özel rol ID' })
+  @IsString()
+  @IsOptional()
+  appRoleId?: string | null;
 }
 
 export class UpdateUserDto {
@@ -56,6 +61,11 @@ export class UpdateUserDto {
   @IsOptional()
   role?: Role;
 
+  @ApiPropertyOptional({ type: String, nullable: true, example: 'app-role-uuid', description: 'Atanacak sistem / özel rol ID' })
+  @IsString()
+  @IsOptional()
+  appRoleId?: string | null;
+
   @ApiPropertyOptional({ example: true })
   @IsOptional()
   isActive?: boolean;
@@ -76,6 +86,15 @@ export class UserDto {
 
   @ApiProperty({ enum: Role })
   role: Role;
+
+  @ApiPropertyOptional()
+  isSuperAdmin?: boolean;
+
+  @ApiPropertyOptional()
+  appRoleId?: string | null;
+
+  @ApiPropertyOptional()
+  appRole?: { id: string; name: string } | null;
 
   @ApiProperty()
   isActive: boolean;

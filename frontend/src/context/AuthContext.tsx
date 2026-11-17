@@ -2,12 +2,26 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { initSocket, disconnectSocket } from '@/lib/socket';
 
+export interface UserPermissionMap {
+  [module: string]: {
+    canView: boolean;
+    canCreate: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+    canCancel: boolean;
+  };
+}
+
 export interface User {
   id: string;
   email: string;
   fullName: string;
   phone?: string | null;
   role: 'SALES_MANAGER' | 'SALES_REP';
+  isSuperAdmin?: boolean;
+  appRoleId?: string | null;
+  appRoleName?: string | null;
+  permissions?: UserPermissionMap;
   isActive: boolean;
   createdAt: string;
 }
@@ -17,7 +31,9 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isManager: boolean;
+  isSuperAdmin: boolean;
   isRep: boolean;
+  can: (module: string, action: 'view' | 'create' | 'edit' | 'delete' | 'cancel') => boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
   updateUser: (updatedUser: Partial<User>) => void;
@@ -67,8 +83,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const isManager = user?.role === 'SALES_MANAGER';
+  const isSuperAdmin = Boolean(user?.isSuperAdmin);
+  const isManager = user?.role === 'SALES_MANAGER' || isSuperAdmin;
   const isRep = user?.role === 'SALES_REP';
+
+  const can = (module: string, action: 'view' | 'create' | 'edit' | 'delete' | 'cancel'): boolean => {
+    if (!user) return false;
+
+    const isStock =
+      module.startsWith('STOCK_') ||
+      module === 'WAREHOUSES' ||
+      module === 'SUPPLIERS' ||
+      module === 'FAULTS';
+
+    // Stok modüllerinde SİLME yetkisi hiç kimseye (super admin dahil) verilemez
+    if (isStock && action === 'delete') {
+      return false;
+    }
+
+    // Super Admin her yetkiye sahiptir
+    if (user.isSuperAdmin) {
+      return true;
+    }
+
+    // Onay akışı ayarları SADECE Super Admin'e özeldir
+    if (module === 'APPROVAL_SETTINGS') {
+      return Boolean(user.isSuperAdmin);
+    }
+
+    // Kullanıcının atanmış izin matrisi varsa
+    if (user.permissions && user.permissions[module]) {
+      const p = user.permissions[module];
+      switch (action) {
+        case 'view':
+          return Boolean(p.canView);
+        case 'create':
+          return Boolean(p.canCreate);
+        case 'edit':
+          return Boolean(p.canEdit);
+        case 'delete':
+          return isStock ? false : Boolean(p.canDelete);
+        case 'cancel':
+          return isStock ? Boolean(p.canCancel) : false;
+        default:
+          return false;
+      }
+    }
+
+    // Geriye dönük uyum (appRoleId yoksa veya permissions henüz yüklenmediyse):
+    if (user.role === 'SALES_MANAGER') {
+      if (module === 'APPROVAL_SETTINGS') return false;
+      return true;
+    }
+
+    if (user.role === 'SALES_REP') {
+      const isCrm = ['LEADS', 'CUSTOMERS', 'QUOTES', 'SALES', 'PRODUCTS'].includes(module);
+      if (isCrm && (action === 'view' || action === 'create' || action === 'edit')) {
+        return true;
+      }
+      return false;
+    }
+
+    return false;
+  };
 
   return (
     <AuthContext.Provider
@@ -77,7 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isAuthenticated: !!token && !!user,
         isManager,
+        isSuperAdmin,
         isRep,
+        can,
         login,
         logout,
         updateUser,

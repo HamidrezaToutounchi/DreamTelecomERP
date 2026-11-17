@@ -10,8 +10,14 @@ export interface QuotesByRepItemDto {
   repId: string;
   repName: string;
   totalQuotesCount: number;
+  totalQuoteAmountTry?: string;
+  totalQuoteAmountUsd?: string;
   approvedCount: number;
+  approvedAmountTry?: string;
+  approvedAmountUsd?: string;
   rejectedCount: number;
   revisedCount: number;
   draftOrSentCount: number;
+  openAmountTry?: string;
+  openAmountUsd?: string;
 }

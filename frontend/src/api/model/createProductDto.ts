@@ -27,4 +27,18 @@ export interface CreateProductDto {
   taxRate?: number;
   /** Ürün Fotoğrafı URL */
   imageUrl?: string;
+  /** Seri Numarası Takibi Yapılsın mı? */
+  trackSerial?: boolean;
+  /** MAC Adresi Takibi Yapılsın mı? */
+  trackMac?: boolean;
+  /** MAC Adresi Zorunlu mu? */
+  macRequired?: boolean;
+  /** Müşteri Garanti Süresi (Ay) */
+  customerWarrantyMonths?: number;
+  /** Tedarikçi Garanti Süresi (Ay) */
+  supplierWarrantyMonths?: number;
+  /** Kritik Minimum Stok Seviyesi */
+  minStockLevel?: string;
+  /** Birim (ADET, METRE, PAKET vb.) */
+  unit?: string;
 }

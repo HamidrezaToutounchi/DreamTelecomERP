@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   UserPlus,
   Users as UsersIcon,
@@ -13,11 +13,16 @@ import {
   Phone,
   Pencil,
   Shield,
+  ShieldCheck,
+  Package,
+  Wrench,
+  Boxes,
 } from 'lucide-react';
 import {
   useUsersControllerFindAll,
   useUsersControllerCreate,
   useUsersControllerUpdate,
+  useRolesControllerFindAll,
 } from '@/api/generated';
 import { CreateUserDtoRole as Role } from '@/api/model';
 import { toast } from 'sonner';
@@ -26,6 +31,7 @@ import { cn } from '@/lib/utils';
 
 export const UsersPage: React.FC = () => {
   const { data: users, isLoading, refetch } = useUsersControllerFindAll();
+  const { data: roles } = useRolesControllerFindAll();
   const createUserMutation = useUsersControllerCreate();
   const updateUserMutation = useUsersControllerUpdate();
 
@@ -34,7 +40,7 @@ export const UsersPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Role>(Role.SALES_REP);
+  const [appRoleId, setAppRoleId] = useState<string>('');
 
   // Düzenleme Modalı State'leri
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -43,8 +49,26 @@ export const UsersPage: React.FC = () => {
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<Role>(Role.SALES_REP);
+  const [editAppRoleId, setEditAppRoleId] = useState<string>('');
   const [editIsActive, setEditIsActive] = useState(true);
+
+  // Roller yüklendiğinde varsayılan rolü ata
+  useEffect(() => {
+    if (roles && roles.length > 0 && !appRoleId) {
+      const defaultRole = roles.find((r) => r.name === 'Depo Sorumlusu') || roles[0];
+      setAppRoleId(defaultRole.id);
+    }
+  }, [roles, appRoleId]);
+
+  const handleOpenCreateModal = () => {
+    setFullName('');
+    setEmail('');
+    setPhone('');
+    setPassword('');
+    const defaultRole = roles?.find((r) => r.name === 'Depo Sorumlusu') || roles?.[0];
+    setAppRoleId(defaultRole ? defaultRole.id : '');
+    setIsModalOpen(true);
+  };
 
   const handleOpenEdit = (u: any) => {
     setSelectedUser(u);
@@ -52,7 +76,19 @@ export const UsersPage: React.FC = () => {
     setEditEmail(u.email || '');
     setEditPhone(u.phone || '');
     setEditPassword('');
-    setEditRole(u.role || Role.SALES_REP);
+
+    // Eğer kullanıcının appRoleId'si varsa onu kullan, yoksa rol adından eşleştir
+    let initialRoleId = u.appRoleId || '';
+    if (!initialRoleId && roles) {
+      const match = roles.find((r) =>
+        u.role === Role.SALES_MANAGER
+          ? r.name === 'Satış Müdürü' || r.name === 'Yönetici'
+          : r.name === 'Satış Temsilcisi'
+      );
+      if (match) initialRoleId = match.id;
+    }
+
+    setEditAppRoleId(initialRoleId);
     setEditIsActive(u.isActive !== false);
     setIsEditModalOpen(true);
   };
@@ -65,6 +101,18 @@ export const UsersPage: React.FC = () => {
       return;
     }
 
+    if (!editAppRoleId) {
+      toast.error('Lütfen bir kullanıcı rolü seçiniz.');
+      return;
+    }
+
+    const selectedRole = roles?.find((r) => r.id === editAppRoleId);
+    const isManager =
+      selectedRole?.name === 'Satış Müdürü' ||
+      selectedRole?.name === 'Yönetici' ||
+      selectedRole?.name.includes('Müdür');
+    const derivedRole = isManager ? Role.SALES_MANAGER : Role.SALES_REP;
+
     try {
       await updateUserMutation.mutateAsync({
         id: selectedUser.id,
@@ -72,7 +120,8 @@ export const UsersPage: React.FC = () => {
           fullName: editFullName.trim(),
           email: editEmail.trim(),
           phone: editPhone.trim() || undefined,
-          role: editRole,
+          role: derivedRole,
+          appRoleId: editAppRoleId || null,
           isActive: editIsActive,
           ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
         },
@@ -93,14 +142,27 @@ export const UsersPage: React.FC = () => {
       return;
     }
 
+    if (!appRoleId) {
+      toast.error('Lütfen bir kullanıcı rolü seçiniz.');
+      return;
+    }
+
+    const selectedRole = roles?.find((r) => r.id === appRoleId);
+    const isManager =
+      selectedRole?.name === 'Satış Müdürü' ||
+      selectedRole?.name === 'Yönetici' ||
+      selectedRole?.name.includes('Müdür');
+    const derivedRole = isManager ? Role.SALES_MANAGER : Role.SALES_REP;
+
     try {
       await createUserMutation.mutateAsync({
         data: {
-          fullName,
-          email,
+          fullName: fullName.trim(),
+          email: email.trim(),
           phone: phone.trim() || undefined,
           password,
-          role,
+          role: derivedRole,
+          appRoleId: appRoleId || undefined,
         },
       });
       toast.success('Kullanıcı başarıyla oluşturuldu.');
@@ -109,7 +171,6 @@ export const UsersPage: React.FC = () => {
       setEmail('');
       setPhone('');
       setPassword('');
-      setRole(Role.SALES_REP);
       refetch();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Kullanıcı oluşturulamadı.');
@@ -155,7 +216,7 @@ export const UsersPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreateModal}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-navy-700 hover:bg-navy-800 text-white font-semibold text-sm transition-colors cursor-pointer shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
@@ -193,21 +254,52 @@ export const UsersPage: React.FC = () => {
                     <td className="px-4 py-3 text-muted-foreground font-mono">{u.email}</td>
                     <td className="px-4 py-3 text-muted-foreground font-mono">{u.phone || '-'}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                          u.role === Role.SALES_MANAGER
-                            ? 'bg-navy-100 text-navy-800 dark:bg-navy-950 dark:text-navy-300 border border-navy-200 dark:border-navy-800'
-                            : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
-                        )}
-                      >
-                        {u.role === Role.SALES_MANAGER ? (
-                          <ShieldAlert className="w-3 h-3" />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {u.isSuperAdmin ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-xs">
+                            <Shield className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                            Süper Admin
+                          </span>
+                        ) : u.appRole ? (
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-xs',
+                              u.appRole.name.includes('Depo')
+                                ? 'bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                                : u.appRole.name.includes('Teknik') || u.appRole.name.includes('Servis')
+                                ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                : u.appRole.name.includes('Müdür') || u.appRole.name.includes('Yönetici')
+                                ? 'bg-navy-50 text-navy-800 dark:bg-navy-950/40 dark:text-navy-300 border-navy-200 dark:border-navy-800'
+                                : u.appRole.name.includes('Muhasebe')
+                                ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                : 'bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 border-teal-200 dark:border-teal-800'
+                            )}
+                          >
+                            {u.appRole.name.includes('Depo') ? (
+                              <Package className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                            ) : u.appRole.name.includes('Teknik') || u.appRole.name.includes('Servis') ? (
+                              <Wrench className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                            ) : u.appRole.name.includes('Müdür') || u.appRole.name.includes('Yönetici') ? (
+                              <ShieldCheck className="w-3.5 h-3.5 text-navy-600 dark:text-navy-400" />
+                            ) : (
+                              <Shield className="w-3.5 h-3.5" />
+                            )}
+                            {u.appRole.name}
+                          </span>
                         ) : (
-                          <UserCheck className="w-3 h-3" />
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-xs',
+                              u.role === Role.SALES_MANAGER
+                                ? 'bg-navy-50 text-navy-800 dark:bg-navy-950/40 dark:text-navy-300 border-navy-200 dark:border-navy-800'
+                                : 'bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 border-teal-200 dark:border-teal-800'
+                            )}
+                          >
+                            <Shield className="w-3.5 h-3.5" />
+                            {u.role === Role.SALES_MANAGER ? 'Satış Müdürü' : 'Satış Temsilcisi'}
+                          </span>
                         )}
-                        {u.role === Role.SALES_MANAGER ? 'Satış Müdürü' : 'Satış Temsilcisi'}
-                      </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -350,16 +442,26 @@ export const UsersPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
-                  Sistem Rolü & Yetkisi <span className="text-red-500">*</span>
+                  Kullanıcı Rolü & Yetki Profili <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as Role)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-semibold"
+                  required
+                  value={appRoleId}
+                  onChange={(e) => setAppRoleId(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-sm focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-semibold cursor-pointer"
                 >
-                  <option value={Role.SALES_REP}>Satış Temsilcisi (Yalnızca kendi portföyünü görür)</option>
-                  <option value={Role.SALES_MANAGER}>Satış Müdürü (Tüm ekibi, raporları ve havuzu yönetir)</option>
+                  <option value="" disabled>
+                    Lütfen Kullanıcı Rolü Seçiniz...
+                  </option>
+                  {roles?.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} {r.description ? `(${r.description})` : ''}
+                    </option>
+                  ))}
                 </select>
+                <p className="text-[11px] text-muted-foreground mt-1.5">
+                  Kullanıcının sisteme giriş yaptığında erişeceği modülleri (Depo & Stok, Satış & Müşteri CRM, Teknik Servis & Arıza, Muhasebe vb.) belirler.
+                </p>
               </div>
 
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
@@ -458,18 +560,25 @@ export const UsersPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-foreground mb-1">
-                    Sistem Rolü <span className="text-red-500">*</span>
+                    Kullanıcı Rolü & Yetkisi <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={editRole}
-                    onChange={(e) => setEditRole(e.target.value as Role)}
+                    required
+                    value={editAppRoleId}
+                    onChange={(e) => setEditAppRoleId(e.target.value)}
                     className="w-full px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-background text-xs focus:outline-hidden focus:ring-2 focus:ring-navy-600 font-semibold cursor-pointer"
                   >
-                    <option value={Role.SALES_REP}>Satış Temsilcisi</option>
-                    <option value={Role.SALES_MANAGER}>Satış Müdürü</option>
+                    <option value="" disabled>
+                      Rol Seçiniz...
+                    </option>
+                    {roles?.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

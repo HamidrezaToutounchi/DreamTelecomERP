@@ -10,6 +10,7 @@ import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, LoginResponseDto, UpdateProfileDto, UserProfileDto } from './dto/auth.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { PermissionsService } from '../common/services/permissions.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private auditLogsService: AuditLogsService,
+    private permissionsService: PermissionsService,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
@@ -52,6 +54,8 @@ export class AuthService {
       details: `"${user.fullName}" (${user.email}) sisteme başarılı giriş yaptı.`,
     });
 
+    const permData = await this.permissionsService.getUserPermissions(user.id);
+
     return {
       accessToken,
       user: {
@@ -61,6 +65,10 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         isActive: user.isActive,
+        isSuperAdmin: user.isSuperAdmin,
+        appRoleId: user.appRoleId,
+        appRoleName: permData.appRoleName,
+        permissions: permData.permissions,
         createdAt: user.createdAt,
       },
     };
@@ -76,6 +84,8 @@ export class AuthService {
         phone: true,
         role: true,
         isActive: true,
+        isSuperAdmin: true,
+        appRoleId: true,
         createdAt: true,
       },
     });
@@ -84,7 +94,13 @@ export class AuthService {
       throw new UnauthorizedException('Kullanıcı bulunamadı.');
     }
 
-    return user;
+    const permData = await this.permissionsService.getUserPermissions(user.id);
+
+    return {
+      ...user,
+      appRoleName: permData.appRoleName,
+      permissions: permData.permissions,
+    };
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserProfileDto> {

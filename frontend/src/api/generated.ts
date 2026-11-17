@@ -25,23 +25,40 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AddBarcodeDto,
   AnalyticsControllerGetDashboardSummaryParams,
   AnalyticsControllerGetDetailedReportsParams,
+  ApprovalSettingResponseDto,
+  ApproveStockExitDto,
   AuditLogsControllerFindAllParams,
+  AvailableSerialItemDto,
+  CancelStockEntryDto,
+  CancelStockExitDto,
   CompanyDto,
+  CreateApprovalSettingDto,
   CreateCustomerCategoryDto,
   CreateCustomerDto,
+  CreateFaultRecordDto,
   CreateInteractionDto,
   CreateLeadDto,
   CreateProductDto,
   CreateQuoteDto,
+  CreateRoleDto,
   CreateSaleDto,
+  CreateStockEntryDto,
+  CreateStockExitDto,
+  CreateSupplierDto,
   CreateUserDto,
+  CreateWarehouseDto,
   CustomerCategoryDto,
   CustomerDto,
+  CustomerExitsReportItemDto,
   CustomersControllerFindAllParams,
   DashboardSummaryResponseDto,
   DetailedReportsResponseDto,
+  FaultRecordResponseDto,
+  FaultStatisticsReportDto,
+  FaultsPaginatedResponseDto,
   ImportExcelResultDto,
   InteractionDto,
   InteractionsControllerFindAllParams,
@@ -61,24 +78,61 @@ import type {
   ProductSalesStatDto,
   ProductsControllerFindAllParams,
   QuickActionLeadDto,
+  QuickCreateCustomerDto,
   QuoteDto,
   QuotesControllerFindAllParams,
+  RejectStockExitDto,
   ReviseQuoteDto,
+  RoleResponseDto,
   SaleDto,
   SalesControllerFindAllParams,
+  SerialTimelineResponseDto,
+  ShipStockExitDto,
+  StockControllerFindAllEntriesParams,
+  StockControllerFindAllExitsParams,
+  StockControllerFindAllFaultsParams,
+  StockControllerGetAvailableSerialsParams,
+  StockControllerGetSerialTimelineParams,
+  StockControllerGetStockMovementsParams,
+  StockControllerGetWarehouseStockReportParams,
+  StockControllerGetWarrantyReportParams,
+  StockControllerLookupParams,
+  StockControllerSearchCustomersParams,
+  StockControllerUploadStockDocumentBody,
+  StockCustomerSearchItemDto,
+  StockDocumentUploadResponseDto,
+  StockEntriesPaginatedResponseDto,
+  StockEntryResponseDto,
+  StockExitResponseDto,
+  StockExitsPaginatedResponseDto,
+  StockLookupResultDto,
+  StockMovementReportItemDto,
+  SupplierDto,
+  SupplierEntriesReportItemDto,
+  SuppliersControllerFindAllParams,
+  UpdateApprovalSettingDto,
   UpdateCompanyDto,
   UpdateCustomerDto,
+  UpdateFaultStatusDto,
   UpdateInteractionDto,
   UpdateLeadDto,
   UpdateProductDto,
   UpdateProfileDto,
   UpdateQuoteStatusDto,
+  UpdateRoleDto,
   UpdateSaleDto,
+  UpdateStockExitShippingDto,
+  UpdateSupplierDto,
   UpdateUserDto,
+  UpdateWarehouseDto,
   UploadsControllerUploadProductImageBody,
   UserDto,
   UserProfileDto,
-  UsersControllerFindAllParams
+  UsersControllerFindAllParams,
+  WarehouseDto,
+  WarehouseStockReportItemDto,
+  WarehousesControllerFindAllParams,
+  WarrantyReportItemDto
 } from './model';
 
 import { customInstance } from '../lib/http';
@@ -718,6 +772,384 @@ export const useUsersControllerUpdate = <TError = unknown,
       > => {
 
       const mutationOptions = getUsersControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Tüm sistem ve özel rolleri listele
+ */
+export const rolesControllerFindAll = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RoleResponseDto[]>(
+      {url: `/api/v1/roles`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getRolesControllerFindAllQueryKey = () => {
+    return [
+    `/api/v1/roles`
+    ] as const;
+    }
+
+    
+export const getRolesControllerFindAllQueryOptions = <TData = Awaited<ReturnType<typeof rolesControllerFindAll>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRolesControllerFindAllQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof rolesControllerFindAll>>> = ({ signal }) => rolesControllerFindAll(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RolesControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof rolesControllerFindAll>>>
+export type RolesControllerFindAllQueryError = unknown
+
+
+export function useRolesControllerFindAll<TData = Awaited<ReturnType<typeof rolesControllerFindAll>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rolesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof rolesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRolesControllerFindAll<TData = Awaited<ReturnType<typeof rolesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rolesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof rolesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRolesControllerFindAll<TData = Awaited<ReturnType<typeof rolesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tüm sistem ve özel rolleri listele
+ */
+
+export function useRolesControllerFindAll<TData = Awaited<ReturnType<typeof rolesControllerFindAll>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRolesControllerFindAllQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni rol ve yetki matrisi oluştur
+ */
+export const rolesControllerCreate = (
+    createRoleDto: CreateRoleDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RoleResponseDto>(
+      {url: `/api/v1/roles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createRoleDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getRolesControllerCreateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerCreate>>, TError,{data: CreateRoleDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof rolesControllerCreate>>, TError,{data: CreateRoleDto}, TContext> => {
+
+const mutationKey = ['rolesControllerCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rolesControllerCreate>>, {data: CreateRoleDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  rolesControllerCreate(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RolesControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof rolesControllerCreate>>>
+    export type RolesControllerCreateMutationBody = CreateRoleDto
+    export type RolesControllerCreateMutationError = unknown
+
+    /**
+ * @summary Yeni rol ve yetki matrisi oluştur
+ */
+export const useRolesControllerCreate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerCreate>>, TError,{data: CreateRoleDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rolesControllerCreate>>,
+        TError,
+        {data: CreateRoleDto},
+        TContext
+      > => {
+
+      const mutationOptions = getRolesControllerCreateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Rol detayını ve izin matrisini getir
+ */
+export const rolesControllerFindOne = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<RoleResponseDto>(
+      {url: `/api/v1/roles/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getRolesControllerFindOneQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/roles/${id}`
+    ] as const;
+    }
+
+    
+export const getRolesControllerFindOneQueryOptions = <TData = Awaited<ReturnType<typeof rolesControllerFindOne>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRolesControllerFindOneQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof rolesControllerFindOne>>> = ({ signal }) => rolesControllerFindOne(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RolesControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof rolesControllerFindOne>>>
+export type RolesControllerFindOneQueryError = unknown
+
+
+export function useRolesControllerFindOne<TData = Awaited<ReturnType<typeof rolesControllerFindOne>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rolesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof rolesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRolesControllerFindOne<TData = Awaited<ReturnType<typeof rolesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof rolesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof rolesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRolesControllerFindOne<TData = Awaited<ReturnType<typeof rolesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Rol detayını ve izin matrisini getir
+ */
+
+export function useRolesControllerFindOne<TData = Awaited<ReturnType<typeof rolesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof rolesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRolesControllerFindOneQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Rol bilgilerini ve yetki matrisini güncelle
+ */
+export const rolesControllerUpdate = (
+    id: string,
+    updateRoleDto: UpdateRoleDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<RoleResponseDto>(
+      {url: `/api/v1/roles/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateRoleDto
+    },
+      options);
+    }
+  
+
+
+export const getRolesControllerUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerUpdate>>, TError,{id: string;data: UpdateRoleDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof rolesControllerUpdate>>, TError,{id: string;data: UpdateRoleDto}, TContext> => {
+
+const mutationKey = ['rolesControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rolesControllerUpdate>>, {id: string;data: UpdateRoleDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  rolesControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RolesControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof rolesControllerUpdate>>>
+    export type RolesControllerUpdateMutationBody = UpdateRoleDto
+    export type RolesControllerUpdateMutationError = unknown
+
+    /**
+ * @summary Rol bilgilerini ve yetki matrisini güncelle
+ */
+export const useRolesControllerUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerUpdate>>, TError,{id: string;data: UpdateRoleDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rolesControllerUpdate>>,
+        TError,
+        {id: string;data: UpdateRoleDto},
+        TContext
+      > => {
+
+      const mutationOptions = getRolesControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Rolü sil (Sistem rolleri ve atanmış kullanıcısı olanlar silinemez)
+ */
+export const rolesControllerRemove = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/roles/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+
+
+export const getRolesControllerRemoveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerRemove>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof rolesControllerRemove>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['rolesControllerRemove'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rolesControllerRemove>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  rolesControllerRemove(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RolesControllerRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof rolesControllerRemove>>>
+    
+    export type RolesControllerRemoveMutationError = unknown
+
+    /**
+ * @summary Rolü sil (Sistem rolleri ve atanmış kullanıcısı olanlar silinemez)
+ */
+export const useRolesControllerRemove = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rolesControllerRemove>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof rolesControllerRemove>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getRolesControllerRemoveMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -3719,7 +4151,7 @@ export function useProductsControllerFindOne<TData = Awaited<ReturnType<typeof p
 
 
 /**
- * @summary Ürün veya hizmet bilgilerini güncelle (Yalnızca Satış Müdürü)
+ * @summary Ürün veya hizmet bilgilerini güncelle
  */
 export const productsControllerUpdate = (
     id: string,
@@ -3767,7 +4199,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ProductsControllerUpdateMutationError = unknown
 
     /**
- * @summary Ürün veya hizmet bilgilerini güncelle (Yalnızca Satış Müdürü)
+ * @summary Ürün veya hizmet bilgilerini güncelle
  */
 export const useProductsControllerUpdate = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerUpdate>>, TError,{id: string;data: UpdateProductDto}, TContext>, request?: SecondParameter<typeof customInstance>}
@@ -3841,6 +4273,198 @@ export const useProductsControllerRemove = <TError = unknown,
       > => {
 
       const mutationOptions = getProductsControllerRemoveMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Ürüne Barkod Ekle
+ */
+export const productsControllerAddBarcode = (
+    id: string,
+    addBarcodeDto: AddBarcodeDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/products/${id}/barcodes`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: addBarcodeDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getProductsControllerAddBarcodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerAddBarcode>>, TError,{id: string;data: AddBarcodeDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof productsControllerAddBarcode>>, TError,{id: string;data: AddBarcodeDto}, TContext> => {
+
+const mutationKey = ['productsControllerAddBarcode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof productsControllerAddBarcode>>, {id: string;data: AddBarcodeDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  productsControllerAddBarcode(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProductsControllerAddBarcodeMutationResult = NonNullable<Awaited<ReturnType<typeof productsControllerAddBarcode>>>
+    export type ProductsControllerAddBarcodeMutationBody = AddBarcodeDto
+    export type ProductsControllerAddBarcodeMutationError = unknown
+
+    /**
+ * @summary Ürüne Barkod Ekle
+ */
+export const useProductsControllerAddBarcode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerAddBarcode>>, TError,{id: string;data: AddBarcodeDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof productsControllerAddBarcode>>,
+        TError,
+        {id: string;data: AddBarcodeDto},
+        TContext
+      > => {
+
+      const mutationOptions = getProductsControllerAddBarcodeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Üründen Barkod Sil
+ */
+export const productsControllerRemoveBarcode = (
+    id: string,
+    barcodeId: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/products/${id}/barcodes/${barcodeId}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+
+
+export const getProductsControllerRemoveBarcodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerRemoveBarcode>>, TError,{id: string;barcodeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof productsControllerRemoveBarcode>>, TError,{id: string;barcodeId: string}, TContext> => {
+
+const mutationKey = ['productsControllerRemoveBarcode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof productsControllerRemoveBarcode>>, {id: string;barcodeId: string}> = (props) => {
+          const {id,barcodeId} = props ?? {};
+
+          return  productsControllerRemoveBarcode(id,barcodeId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProductsControllerRemoveBarcodeMutationResult = NonNullable<Awaited<ReturnType<typeof productsControllerRemoveBarcode>>>
+    
+    export type ProductsControllerRemoveBarcodeMutationError = unknown
+
+    /**
+ * @summary Üründen Barkod Sil
+ */
+export const useProductsControllerRemoveBarcode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerRemoveBarcode>>, TError,{id: string;barcodeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof productsControllerRemoveBarcode>>,
+        TError,
+        {id: string;barcodeId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getProductsControllerRemoveBarcodeMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Barkodu Varsayılan Yap
+ */
+export const productsControllerSetDefaultBarcode = (
+    id: string,
+    barcodeId: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/products/${id}/barcodes/${barcodeId}/set-default`, method: 'PATCH'
+    },
+      options);
+    }
+  
+
+
+export const getProductsControllerSetDefaultBarcodeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>, TError,{id: string;barcodeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>, TError,{id: string;barcodeId: string}, TContext> => {
+
+const mutationKey = ['productsControllerSetDefaultBarcode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>, {id: string;barcodeId: string}> = (props) => {
+          const {id,barcodeId} = props ?? {};
+
+          return  productsControllerSetDefaultBarcode(id,barcodeId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ProductsControllerSetDefaultBarcodeMutationResult = NonNullable<Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>>
+    
+    export type ProductsControllerSetDefaultBarcodeMutationError = unknown
+
+    /**
+ * @summary Barkodu Varsayılan Yap
+ */
+export const useProductsControllerSetDefaultBarcode = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>, TError,{id: string;barcodeId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof productsControllerSetDefaultBarcode>>,
+        TError,
+        {id: string;barcodeId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getProductsControllerSetDefaultBarcodeMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -4092,6 +4716,3708 @@ export const useCompaniesControllerUpdate = <TError = unknown,
       > => {
 
       const mutationOptions = getCompaniesControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Depoları Listele
+ */
+export const warehousesControllerFindAll = (
+    params?: WarehousesControllerFindAllParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarehouseDto[]>(
+      {url: `/api/v1/warehouses`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getWarehousesControllerFindAllQueryKey = (params?: WarehousesControllerFindAllParams,) => {
+    return [
+    `/api/v1/warehouses`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getWarehousesControllerFindAllQueryOptions = <TData = Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError = unknown>(params?: WarehousesControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWarehousesControllerFindAllQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof warehousesControllerFindAll>>> = ({ signal }) => warehousesControllerFindAll(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type WarehousesControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof warehousesControllerFindAll>>>
+export type WarehousesControllerFindAllQueryError = unknown
+
+
+export function useWarehousesControllerFindAll<TData = Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError = unknown>(
+ params: undefined |  WarehousesControllerFindAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof warehousesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof warehousesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWarehousesControllerFindAll<TData = Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError = unknown>(
+ params?: WarehousesControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof warehousesControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof warehousesControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWarehousesControllerFindAll<TData = Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError = unknown>(
+ params?: WarehousesControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Depoları Listele
+ */
+
+export function useWarehousesControllerFindAll<TData = Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError = unknown>(
+ params?: WarehousesControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWarehousesControllerFindAllQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni Depo Tanımla
+ */
+export const warehousesControllerCreate = (
+    createWarehouseDto: CreateWarehouseDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarehouseDto>(
+      {url: `/api/v1/warehouses`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createWarehouseDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getWarehousesControllerCreateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerCreate>>, TError,{data: CreateWarehouseDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerCreate>>, TError,{data: CreateWarehouseDto}, TContext> => {
+
+const mutationKey = ['warehousesControllerCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof warehousesControllerCreate>>, {data: CreateWarehouseDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  warehousesControllerCreate(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WarehousesControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof warehousesControllerCreate>>>
+    export type WarehousesControllerCreateMutationBody = CreateWarehouseDto
+    export type WarehousesControllerCreateMutationError = unknown
+
+    /**
+ * @summary Yeni Depo Tanımla
+ */
+export const useWarehousesControllerCreate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerCreate>>, TError,{data: CreateWarehouseDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof warehousesControllerCreate>>,
+        TError,
+        {data: CreateWarehouseDto},
+        TContext
+      > => {
+
+      const mutationOptions = getWarehousesControllerCreateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Depo Detayını Getir
+ */
+export const warehousesControllerFindOne = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarehouseDto>(
+      {url: `/api/v1/warehouses/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getWarehousesControllerFindOneQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/warehouses/${id}`
+    ] as const;
+    }
+
+    
+export const getWarehousesControllerFindOneQueryOptions = <TData = Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWarehousesControllerFindOneQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof warehousesControllerFindOne>>> = ({ signal }) => warehousesControllerFindOne(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type WarehousesControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof warehousesControllerFindOne>>>
+export type WarehousesControllerFindOneQueryError = unknown
+
+
+export function useWarehousesControllerFindOne<TData = Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof warehousesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof warehousesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWarehousesControllerFindOne<TData = Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof warehousesControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof warehousesControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWarehousesControllerFindOne<TData = Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Depo Detayını Getir
+ */
+
+export function useWarehousesControllerFindOne<TData = Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof warehousesControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWarehousesControllerFindOneQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Depo Bilgilerini Güncelle
+ */
+export const warehousesControllerUpdate = (
+    id: string,
+    updateWarehouseDto: UpdateWarehouseDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<WarehouseDto>(
+      {url: `/api/v1/warehouses/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateWarehouseDto
+    },
+      options);
+    }
+  
+
+
+export const getWarehousesControllerUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerUpdate>>, TError,{id: string;data: UpdateWarehouseDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerUpdate>>, TError,{id: string;data: UpdateWarehouseDto}, TContext> => {
+
+const mutationKey = ['warehousesControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof warehousesControllerUpdate>>, {id: string;data: UpdateWarehouseDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  warehousesControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WarehousesControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof warehousesControllerUpdate>>>
+    export type WarehousesControllerUpdateMutationBody = UpdateWarehouseDto
+    export type WarehousesControllerUpdateMutationError = unknown
+
+    /**
+ * @summary Depo Bilgilerini Güncelle
+ */
+export const useWarehousesControllerUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerUpdate>>, TError,{id: string;data: UpdateWarehouseDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof warehousesControllerUpdate>>,
+        TError,
+        {id: string;data: UpdateWarehouseDto},
+        TContext
+      > => {
+
+      const mutationOptions = getWarehousesControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Depoyu Aktif/Pasif Yap
+ */
+export const warehousesControllerToggleActive = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<WarehouseDto>(
+      {url: `/api/v1/warehouses/${id}/toggle-active`, method: 'PATCH'
+    },
+      options);
+    }
+  
+
+
+export const getWarehousesControllerToggleActiveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerToggleActive>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerToggleActive>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['warehousesControllerToggleActive'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof warehousesControllerToggleActive>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  warehousesControllerToggleActive(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WarehousesControllerToggleActiveMutationResult = NonNullable<Awaited<ReturnType<typeof warehousesControllerToggleActive>>>
+    
+    export type WarehousesControllerToggleActiveMutationError = unknown
+
+    /**
+ * @summary Depoyu Aktif/Pasif Yap
+ */
+export const useWarehousesControllerToggleActive = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof warehousesControllerToggleActive>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof warehousesControllerToggleActive>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getWarehousesControllerToggleActiveMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Tedarikçileri Listele
+ */
+export const suppliersControllerFindAll = (
+    params?: SuppliersControllerFindAllParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SupplierDto[]>(
+      {url: `/api/v1/suppliers`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getSuppliersControllerFindAllQueryKey = (params?: SuppliersControllerFindAllParams,) => {
+    return [
+    `/api/v1/suppliers`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getSuppliersControllerFindAllQueryOptions = <TData = Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError = unknown>(params?: SuppliersControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuppliersControllerFindAllQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suppliersControllerFindAll>>> = ({ signal }) => suppliersControllerFindAll(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuppliersControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof suppliersControllerFindAll>>>
+export type SuppliersControllerFindAllQueryError = unknown
+
+
+export function useSuppliersControllerFindAll<TData = Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError = unknown>(
+ params: undefined |  SuppliersControllerFindAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suppliersControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof suppliersControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuppliersControllerFindAll<TData = Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError = unknown>(
+ params?: SuppliersControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suppliersControllerFindAll>>,
+          TError,
+          Awaited<ReturnType<typeof suppliersControllerFindAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuppliersControllerFindAll<TData = Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError = unknown>(
+ params?: SuppliersControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tedarikçileri Listele
+ */
+
+export function useSuppliersControllerFindAll<TData = Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError = unknown>(
+ params?: SuppliersControllerFindAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindAll>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuppliersControllerFindAllQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni Tedarikçi Tanımla
+ */
+export const suppliersControllerCreate = (
+    createSupplierDto: CreateSupplierDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SupplierDto>(
+      {url: `/api/v1/suppliers`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createSupplierDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getSuppliersControllerCreateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerCreate>>, TError,{data: CreateSupplierDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerCreate>>, TError,{data: CreateSupplierDto}, TContext> => {
+
+const mutationKey = ['suppliersControllerCreate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suppliersControllerCreate>>, {data: CreateSupplierDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  suppliersControllerCreate(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuppliersControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof suppliersControllerCreate>>>
+    export type SuppliersControllerCreateMutationBody = CreateSupplierDto
+    export type SuppliersControllerCreateMutationError = unknown
+
+    /**
+ * @summary Yeni Tedarikçi Tanımla
+ */
+export const useSuppliersControllerCreate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerCreate>>, TError,{data: CreateSupplierDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suppliersControllerCreate>>,
+        TError,
+        {data: CreateSupplierDto},
+        TContext
+      > => {
+
+      const mutationOptions = getSuppliersControllerCreateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Tedarikçi Detayını Getir
+ */
+export const suppliersControllerFindOne = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SupplierDto>(
+      {url: `/api/v1/suppliers/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getSuppliersControllerFindOneQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/suppliers/${id}`
+    ] as const;
+    }
+
+    
+export const getSuppliersControllerFindOneQueryOptions = <TData = Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSuppliersControllerFindOneQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof suppliersControllerFindOne>>> = ({ signal }) => suppliersControllerFindOne(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SuppliersControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof suppliersControllerFindOne>>>
+export type SuppliersControllerFindOneQueryError = unknown
+
+
+export function useSuppliersControllerFindOne<TData = Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suppliersControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof suppliersControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuppliersControllerFindOne<TData = Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof suppliersControllerFindOne>>,
+          TError,
+          Awaited<ReturnType<typeof suppliersControllerFindOne>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSuppliersControllerFindOne<TData = Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tedarikçi Detayını Getir
+ */
+
+export function useSuppliersControllerFindOne<TData = Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof suppliersControllerFindOne>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSuppliersControllerFindOneQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Tedarikçi Bilgilerini Güncelle
+ */
+export const suppliersControllerUpdate = (
+    id: string,
+    updateSupplierDto: UpdateSupplierDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<SupplierDto>(
+      {url: `/api/v1/suppliers/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateSupplierDto
+    },
+      options);
+    }
+  
+
+
+export const getSuppliersControllerUpdateMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerUpdate>>, TError,{id: string;data: UpdateSupplierDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerUpdate>>, TError,{id: string;data: UpdateSupplierDto}, TContext> => {
+
+const mutationKey = ['suppliersControllerUpdate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suppliersControllerUpdate>>, {id: string;data: UpdateSupplierDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  suppliersControllerUpdate(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuppliersControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof suppliersControllerUpdate>>>
+    export type SuppliersControllerUpdateMutationBody = UpdateSupplierDto
+    export type SuppliersControllerUpdateMutationError = unknown
+
+    /**
+ * @summary Tedarikçi Bilgilerini Güncelle
+ */
+export const useSuppliersControllerUpdate = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerUpdate>>, TError,{id: string;data: UpdateSupplierDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suppliersControllerUpdate>>,
+        TError,
+        {id: string;data: UpdateSupplierDto},
+        TContext
+      > => {
+
+      const mutationOptions = getSuppliersControllerUpdateMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Tedarikçiyi Aktif/Pasif Yap
+ */
+export const suppliersControllerToggleActive = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<SupplierDto>(
+      {url: `/api/v1/suppliers/${id}/toggle-active`, method: 'PATCH'
+    },
+      options);
+    }
+  
+
+
+export const getSuppliersControllerToggleActiveMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerToggleActive>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerToggleActive>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['suppliersControllerToggleActive'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suppliersControllerToggleActive>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  suppliersControllerToggleActive(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuppliersControllerToggleActiveMutationResult = NonNullable<Awaited<ReturnType<typeof suppliersControllerToggleActive>>>
+    
+    export type SuppliersControllerToggleActiveMutationError = unknown
+
+    /**
+ * @summary Tedarikçiyi Aktif/Pasif Yap
+ */
+export const useSuppliersControllerToggleActive = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suppliersControllerToggleActive>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suppliersControllerToggleActive>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getSuppliersControllerToggleActiveMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Stok Modülü İçin Tüm Müşterilerde Arama
+ */
+export const stockControllerSearchCustomers = (
+    params?: StockControllerSearchCustomersParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockCustomerSearchItemDto[]>(
+      {url: `/api/v1/stock/customers/search`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerSearchCustomersQueryKey = (params?: StockControllerSearchCustomersParams,) => {
+    return [
+    `/api/v1/stock/customers/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerSearchCustomersQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError = unknown>(params?: StockControllerSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerSearchCustomersQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerSearchCustomers>>> = ({ signal }) => stockControllerSearchCustomers(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerSearchCustomersQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerSearchCustomers>>>
+export type StockControllerSearchCustomersQueryError = unknown
+
+
+export function useStockControllerSearchCustomers<TData = Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError = unknown>(
+ params: undefined |  StockControllerSearchCustomersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerSearchCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerSearchCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerSearchCustomers<TData = Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError = unknown>(
+ params?: StockControllerSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerSearchCustomers>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerSearchCustomers>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerSearchCustomers<TData = Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError = unknown>(
+ params?: StockControllerSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stok Modülü İçin Tüm Müşterilerde Arama
+ */
+
+export function useStockControllerSearchCustomers<TData = Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError = unknown>(
+ params?: StockControllerSearchCustomersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerSearchCustomers>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerSearchCustomersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Stok İçin Hızlı ve Mükerrer Kontrollü Müşteri Ekle
+ */
+export const stockControllerQuickCreateCustomer = (
+    quickCreateCustomerDto: QuickCreateCustomerDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockCustomerSearchItemDto>(
+      {url: `/api/v1/stock/customers/quick-create`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: quickCreateCustomerDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerQuickCreateCustomerMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>, TError,{data: QuickCreateCustomerDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>, TError,{data: QuickCreateCustomerDto}, TContext> => {
+
+const mutationKey = ['stockControllerQuickCreateCustomer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>, {data: QuickCreateCustomerDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerQuickCreateCustomer(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerQuickCreateCustomerMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>>
+    export type StockControllerQuickCreateCustomerMutationBody = QuickCreateCustomerDto
+    export type StockControllerQuickCreateCustomerMutationError = unknown
+
+    /**
+ * @summary Stok İçin Hızlı ve Mükerrer Kontrollü Müşteri Ekle
+ */
+export const useStockControllerQuickCreateCustomer = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>, TError,{data: QuickCreateCustomerDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerQuickCreateCustomer>>,
+        TError,
+        {data: QuickCreateCustomerDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerQuickCreateCustomerMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Barkod, Seri No veya MAC ile Akıllı Ürün/Stok Tespiti
+ */
+export const stockControllerLookup = (
+    params: StockControllerLookupParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockLookupResultDto>(
+      {url: `/api/v1/stock/lookup`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerLookupQueryKey = (params?: StockControllerLookupParams,) => {
+    return [
+    `/api/v1/stock/lookup`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerLookupQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerLookup>>, TError = unknown>(params: StockControllerLookupParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerLookupQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerLookup>>> = ({ signal }) => stockControllerLookup(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerLookupQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerLookup>>>
+export type StockControllerLookupQueryError = unknown
+
+
+export function useStockControllerLookup<TData = Awaited<ReturnType<typeof stockControllerLookup>>, TError = unknown>(
+ params: StockControllerLookupParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerLookup>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerLookup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerLookup<TData = Awaited<ReturnType<typeof stockControllerLookup>>, TError = unknown>(
+ params: StockControllerLookupParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerLookup>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerLookup>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerLookup<TData = Awaited<ReturnType<typeof stockControllerLookup>>, TError = unknown>(
+ params: StockControllerLookupParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Barkod, Seri No veya MAC ile Akıllı Ürün/Stok Tespiti
+ */
+
+export function useStockControllerLookup<TData = Awaited<ReturnType<typeof stockControllerLookup>>, TError = unknown>(
+ params: StockControllerLookupParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerLookup>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerLookupQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Stok Giriş/Çıkış Fişleri İçin Gizli Belge Yükle
+ */
+export const stockControllerUploadStockDocument = (
+    stockControllerUploadStockDocumentBody: StockControllerUploadStockDocumentBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
+if(stockControllerUploadStockDocumentBody.file !== undefined) {
+ formData.append(`file`, stockControllerUploadStockDocumentBody.file)
+ }
+
+      return customInstance<StockDocumentUploadResponseDto>(
+      {url: `/api/v1/stock/documents/upload`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerUploadStockDocumentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUploadStockDocument>>, TError,{data: StockControllerUploadStockDocumentBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerUploadStockDocument>>, TError,{data: StockControllerUploadStockDocumentBody}, TContext> => {
+
+const mutationKey = ['stockControllerUploadStockDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerUploadStockDocument>>, {data: StockControllerUploadStockDocumentBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerUploadStockDocument(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerUploadStockDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerUploadStockDocument>>>
+    export type StockControllerUploadStockDocumentMutationBody = StockControllerUploadStockDocumentBody
+    export type StockControllerUploadStockDocumentMutationError = unknown
+
+    /**
+ * @summary Stok Giriş/Çıkış Fişleri İçin Gizli Belge Yükle
+ */
+export const useStockControllerUploadStockDocument = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUploadStockDocument>>, TError,{data: StockControllerUploadStockDocumentBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerUploadStockDocument>>,
+        TError,
+        {data: StockControllerUploadStockDocumentBody},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerUploadStockDocumentMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Yetkili Kullanıcıya Gizli Stok Belgesini Göster / İndir
+ */
+export const stockControllerServeStockDocument = (
+    filename: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/stock/documents/${filename}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerServeStockDocumentQueryKey = (filename?: string,) => {
+    return [
+    `/api/v1/stock/documents/${filename}`
+    ] as const;
+    }
+
+    
+export const getStockControllerServeStockDocumentQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError = unknown>(filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerServeStockDocumentQueryKey(filename);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerServeStockDocument>>> = ({ signal }) => stockControllerServeStockDocument(filename, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(filename), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerServeStockDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerServeStockDocument>>>
+export type StockControllerServeStockDocumentQueryError = unknown
+
+
+export function useStockControllerServeStockDocument<TData = Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError = unknown>(
+ filename: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerServeStockDocument>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerServeStockDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerServeStockDocument<TData = Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerServeStockDocument>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerServeStockDocument>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerServeStockDocument<TData = Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Yetkili Kullanıcıya Gizli Stok Belgesini Göster / İndir
+ */
+
+export function useStockControllerServeStockDocument<TData = Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerServeStockDocument>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerServeStockDocumentQueryOptions(filename,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni Mal Kabul / Stok Giriş Fişi Kaydet
+ */
+export const stockControllerCreateEntry = (
+    createStockEntryDto: CreateStockEntryDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockEntryResponseDto>(
+      {url: `/api/v1/stock/entries`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createStockEntryDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCreateEntryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateEntry>>, TError,{data: CreateStockEntryDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateEntry>>, TError,{data: CreateStockEntryDto}, TContext> => {
+
+const mutationKey = ['stockControllerCreateEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCreateEntry>>, {data: CreateStockEntryDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerCreateEntry(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCreateEntryMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCreateEntry>>>
+    export type StockControllerCreateEntryMutationBody = CreateStockEntryDto
+    export type StockControllerCreateEntryMutationError = unknown
+
+    /**
+ * @summary Yeni Mal Kabul / Stok Giriş Fişi Kaydet
+ */
+export const useStockControllerCreateEntry = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateEntry>>, TError,{data: CreateStockEntryDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCreateEntry>>,
+        TError,
+        {data: CreateStockEntryDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCreateEntryMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Stok Giriş Fişlerini Listele (Filtreleme & Sayfalama)
+ */
+export const stockControllerFindAllEntries = (
+    params?: StockControllerFindAllEntriesParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockEntriesPaginatedResponseDto>(
+      {url: `/api/v1/stock/entries`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindAllEntriesQueryKey = (params?: StockControllerFindAllEntriesParams,) => {
+    return [
+    `/api/v1/stock/entries`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerFindAllEntriesQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError = unknown>(params?: StockControllerFindAllEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindAllEntriesQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindAllEntries>>> = ({ signal }) => stockControllerFindAllEntries(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindAllEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindAllEntries>>>
+export type StockControllerFindAllEntriesQueryError = unknown
+
+
+export function useStockControllerFindAllEntries<TData = Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError = unknown>(
+ params: undefined |  StockControllerFindAllEntriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllEntries>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllEntries<TData = Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError = unknown>(
+ params?: StockControllerFindAllEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllEntries>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllEntries>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllEntries<TData = Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError = unknown>(
+ params?: StockControllerFindAllEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stok Giriş Fişlerini Listele (Filtreleme & Sayfalama)
+ */
+
+export function useStockControllerFindAllEntries<TData = Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError = unknown>(
+ params?: StockControllerFindAllEntriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllEntries>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindAllEntriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Giriş Fişi Detayını ve Kalemlerini Getir
+ */
+export const stockControllerFindOneEntry = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockEntryResponseDto>(
+      {url: `/api/v1/stock/entries/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindOneEntryQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/stock/entries/${id}`
+    ] as const;
+    }
+
+    
+export const getStockControllerFindOneEntryQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindOneEntryQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindOneEntry>>> = ({ signal }) => stockControllerFindOneEntry(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindOneEntryQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindOneEntry>>>
+export type StockControllerFindOneEntryQueryError = unknown
+
+
+export function useStockControllerFindOneEntry<TData = Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneEntry>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneEntry>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneEntry<TData = Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneEntry>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneEntry>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneEntry<TData = Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Giriş Fişi Detayını ve Kalemlerini Getir
+ */
+
+export function useStockControllerFindOneEntry<TData = Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneEntry>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindOneEntryQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Giriş Fişini İptal Et (Ters Hareket & İptal Gerekçesi İle)
+ */
+export const stockControllerCancelEntry = (
+    id: string,
+    cancelStockEntryDto: CancelStockEntryDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockEntryResponseDto>(
+      {url: `/api/v1/stock/entries/${id}/cancel`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: cancelStockEntryDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCancelEntryMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelEntry>>, TError,{id: string;data: CancelStockEntryDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelEntry>>, TError,{id: string;data: CancelStockEntryDto}, TContext> => {
+
+const mutationKey = ['stockControllerCancelEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCancelEntry>>, {id: string;data: CancelStockEntryDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerCancelEntry(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCancelEntryMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCancelEntry>>>
+    export type StockControllerCancelEntryMutationBody = CancelStockEntryDto
+    export type StockControllerCancelEntryMutationError = unknown
+
+    /**
+ * @summary Giriş Fişini İptal Et (Ters Hareket & İptal Gerekçesi İle)
+ */
+export const useStockControllerCancelEntry = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelEntry>>, TError,{id: string;data: CancelStockEntryDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCancelEntry>>,
+        TError,
+        {id: string;data: CancelStockEntryDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCancelEntryMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Depoda Çıkışa Hazır (IN_STOCK) Serileri Listele
+ */
+export const stockControllerGetAvailableSerials = (
+    params: StockControllerGetAvailableSerialsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AvailableSerialItemDto[]>(
+      {url: `/api/v1/stock/available-serials`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetAvailableSerialsQueryKey = (params?: StockControllerGetAvailableSerialsParams,) => {
+    return [
+    `/api/v1/stock/available-serials`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerGetAvailableSerialsQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError = unknown>(params: StockControllerGetAvailableSerialsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetAvailableSerialsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>> = ({ signal }) => stockControllerGetAvailableSerials(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetAvailableSerialsQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>>
+export type StockControllerGetAvailableSerialsQueryError = unknown
+
+
+export function useStockControllerGetAvailableSerials<TData = Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError = unknown>(
+ params: StockControllerGetAvailableSerialsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetAvailableSerials<TData = Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError = unknown>(
+ params: StockControllerGetAvailableSerialsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetAvailableSerials<TData = Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError = unknown>(
+ params: StockControllerGetAvailableSerialsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Depoda Çıkışa Hazır (IN_STOCK) Serileri Listele
+ */
+
+export function useStockControllerGetAvailableSerials<TData = Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError = unknown>(
+ params: StockControllerGetAvailableSerialsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetAvailableSerials>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetAvailableSerialsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni Stok Çıkışı / Sevkiyat Talebi Oluştur
+ */
+export const stockControllerCreateExit = (
+    createStockExitDto: CreateStockExitDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createStockExitDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCreateExitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateExit>>, TError,{data: CreateStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateExit>>, TError,{data: CreateStockExitDto}, TContext> => {
+
+const mutationKey = ['stockControllerCreateExit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCreateExit>>, {data: CreateStockExitDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerCreateExit(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCreateExitMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCreateExit>>>
+    export type StockControllerCreateExitMutationBody = CreateStockExitDto
+    export type StockControllerCreateExitMutationError = unknown
+
+    /**
+ * @summary Yeni Stok Çıkışı / Sevkiyat Talebi Oluştur
+ */
+export const useStockControllerCreateExit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateExit>>, TError,{data: CreateStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCreateExit>>,
+        TError,
+        {data: CreateStockExitDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCreateExitMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Stok Çıkış Fişlerini Listele (Filtreleme & Sayfalama)
+ */
+export const stockControllerFindAllExits = (
+    params?: StockControllerFindAllExitsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitsPaginatedResponseDto>(
+      {url: `/api/v1/stock/exits`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindAllExitsQueryKey = (params?: StockControllerFindAllExitsParams,) => {
+    return [
+    `/api/v1/stock/exits`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerFindAllExitsQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError = unknown>(params?: StockControllerFindAllExitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindAllExitsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindAllExits>>> = ({ signal }) => stockControllerFindAllExits(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindAllExitsQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindAllExits>>>
+export type StockControllerFindAllExitsQueryError = unknown
+
+
+export function useStockControllerFindAllExits<TData = Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError = unknown>(
+ params: undefined |  StockControllerFindAllExitsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllExits>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllExits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllExits<TData = Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError = unknown>(
+ params?: StockControllerFindAllExitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllExits>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllExits>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllExits<TData = Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError = unknown>(
+ params?: StockControllerFindAllExitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stok Çıkış Fişlerini Listele (Filtreleme & Sayfalama)
+ */
+
+export function useStockControllerFindAllExits<TData = Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError = unknown>(
+ params?: StockControllerFindAllExitsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllExits>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindAllExitsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Çıkış Fişi Detayını, Kalemlerini ve Onay Adımlarını Getir
+ */
+export const stockControllerFindOneExit = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindOneExitQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/stock/exits/${id}`
+    ] as const;
+    }
+
+    
+export const getStockControllerFindOneExitQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindOneExitQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindOneExit>>> = ({ signal }) => stockControllerFindOneExit(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindOneExitQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindOneExit>>>
+export type StockControllerFindOneExitQueryError = unknown
+
+
+export function useStockControllerFindOneExit<TData = Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneExit>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneExit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneExit<TData = Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneExit>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneExit>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneExit<TData = Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Çıkış Fişi Detayını, Kalemlerini ve Onay Adımlarını Getir
+ */
+
+export function useStockControllerFindOneExit<TData = Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneExit>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindOneExitQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Çıkış Fişini Onayla (Sıralı Onay Mekanizması)
+ */
+export const stockControllerApproveExit = (
+    id: string,
+    approveStockExitDto: ApproveStockExitDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}/approve`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: approveStockExitDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerApproveExitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerApproveExit>>, TError,{id: string;data: ApproveStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerApproveExit>>, TError,{id: string;data: ApproveStockExitDto}, TContext> => {
+
+const mutationKey = ['stockControllerApproveExit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerApproveExit>>, {id: string;data: ApproveStockExitDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerApproveExit(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerApproveExitMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerApproveExit>>>
+    export type StockControllerApproveExitMutationBody = ApproveStockExitDto
+    export type StockControllerApproveExitMutationError = unknown
+
+    /**
+ * @summary Çıkış Fişini Onayla (Sıralı Onay Mekanizması)
+ */
+export const useStockControllerApproveExit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerApproveExit>>, TError,{id: string;data: ApproveStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerApproveExit>>,
+        TError,
+        {id: string;data: ApproveStockExitDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerApproveExitMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Çıkış Fişini Reddet (Serileri Serbest Bırakır)
+ */
+export const stockControllerRejectExit = (
+    id: string,
+    rejectStockExitDto: RejectStockExitDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}/reject`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: rejectStockExitDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerRejectExitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerRejectExit>>, TError,{id: string;data: RejectStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerRejectExit>>, TError,{id: string;data: RejectStockExitDto}, TContext> => {
+
+const mutationKey = ['stockControllerRejectExit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerRejectExit>>, {id: string;data: RejectStockExitDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerRejectExit(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerRejectExitMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerRejectExit>>>
+    export type StockControllerRejectExitMutationBody = RejectStockExitDto
+    export type StockControllerRejectExitMutationError = unknown
+
+    /**
+ * @summary Çıkış Fişini Reddet (Serileri Serbest Bırakır)
+ */
+export const useStockControllerRejectExit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerRejectExit>>, TError,{id: string;data: RejectStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerRejectExit>>,
+        TError,
+        {id: string;data: RejectStockExitDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerRejectExitMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Sevkiyatı Tamamla / Sevk Et (Fiziksel Stok Düşüşü)
+ */
+export const stockControllerShipExit = (
+    id: string,
+    shipStockExitDto: ShipStockExitDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}/ship`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: shipStockExitDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerShipExitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerShipExit>>, TError,{id: string;data: ShipStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerShipExit>>, TError,{id: string;data: ShipStockExitDto}, TContext> => {
+
+const mutationKey = ['stockControllerShipExit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerShipExit>>, {id: string;data: ShipStockExitDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerShipExit(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerShipExitMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerShipExit>>>
+    export type StockControllerShipExitMutationBody = ShipStockExitDto
+    export type StockControllerShipExitMutationError = unknown
+
+    /**
+ * @summary Sevkiyatı Tamamla / Sevk Et (Fiziksel Stok Düşüşü)
+ */
+export const useStockControllerShipExit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerShipExit>>, TError,{id: string;data: ShipStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerShipExit>>,
+        TError,
+        {id: string;data: ShipStockExitDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerShipExitMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Kargo / Taşıyıcı ve Takip Numarası Bilgilerini Güncelle (1 gün sonra geldiğinde)
+ */
+export const stockControllerUpdateExitShipping = (
+    id: string,
+    updateStockExitShippingDto: UpdateStockExitShippingDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}/shipping`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateStockExitShippingDto
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerUpdateExitShippingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>, TError,{id: string;data: UpdateStockExitShippingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>, TError,{id: string;data: UpdateStockExitShippingDto}, TContext> => {
+
+const mutationKey = ['stockControllerUpdateExitShipping'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>, {id: string;data: UpdateStockExitShippingDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerUpdateExitShipping(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerUpdateExitShippingMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>>
+    export type StockControllerUpdateExitShippingMutationBody = UpdateStockExitShippingDto
+    export type StockControllerUpdateExitShippingMutationError = unknown
+
+    /**
+ * @summary Kargo / Taşıyıcı ve Takip Numarası Bilgilerini Güncelle (1 gün sonra geldiğinde)
+ */
+export const useStockControllerUpdateExitShipping = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>, TError,{id: string;data: UpdateStockExitShippingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerUpdateExitShipping>>,
+        TError,
+        {id: string;data: UpdateStockExitShippingDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerUpdateExitShippingMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Çıkış Fişini İptal Et (Ters Hareket & Gerekçe İle)
+ */
+export const stockControllerCancelExit = (
+    id: string,
+    cancelStockExitDto: CancelStockExitDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockExitResponseDto>(
+      {url: `/api/v1/stock/exits/${id}/cancel`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: cancelStockExitDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCancelExitMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelExit>>, TError,{id: string;data: CancelStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelExit>>, TError,{id: string;data: CancelStockExitDto}, TContext> => {
+
+const mutationKey = ['stockControllerCancelExit'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCancelExit>>, {id: string;data: CancelStockExitDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerCancelExit(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCancelExitMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCancelExit>>>
+    export type StockControllerCancelExitMutationBody = CancelStockExitDto
+    export type StockControllerCancelExitMutationError = unknown
+
+    /**
+ * @summary Çıkış Fişini İptal Et (Ters Hareket & Gerekçe İle)
+ */
+export const useStockControllerCancelExit = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCancelExit>>, TError,{id: string;data: CancelStockExitDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCancelExit>>,
+        TError,
+        {id: string;data: CancelStockExitDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCancelExitMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Yeni Arıza / RMA Kaydı Oluştur
+ */
+export const stockControllerCreateFault = (
+    createFaultRecordDto: CreateFaultRecordDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<FaultRecordResponseDto>(
+      {url: `/api/v1/stock/faults`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createFaultRecordDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCreateFaultMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateFault>>, TError,{data: CreateFaultRecordDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateFault>>, TError,{data: CreateFaultRecordDto}, TContext> => {
+
+const mutationKey = ['stockControllerCreateFault'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCreateFault>>, {data: CreateFaultRecordDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerCreateFault(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCreateFaultMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCreateFault>>>
+    export type StockControllerCreateFaultMutationBody = CreateFaultRecordDto
+    export type StockControllerCreateFaultMutationError = unknown
+
+    /**
+ * @summary Yeni Arıza / RMA Kaydı Oluştur
+ */
+export const useStockControllerCreateFault = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateFault>>, TError,{data: CreateFaultRecordDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCreateFault>>,
+        TError,
+        {data: CreateFaultRecordDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCreateFaultMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Arıza Kayıtlarını Listele (Filtreleme & Sayfalama)
+ */
+export const stockControllerFindAllFaults = (
+    params?: StockControllerFindAllFaultsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<FaultsPaginatedResponseDto>(
+      {url: `/api/v1/stock/faults`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindAllFaultsQueryKey = (params?: StockControllerFindAllFaultsParams,) => {
+    return [
+    `/api/v1/stock/faults`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerFindAllFaultsQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError = unknown>(params?: StockControllerFindAllFaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindAllFaultsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindAllFaults>>> = ({ signal }) => stockControllerFindAllFaults(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindAllFaultsQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindAllFaults>>>
+export type StockControllerFindAllFaultsQueryError = unknown
+
+
+export function useStockControllerFindAllFaults<TData = Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError = unknown>(
+ params: undefined |  StockControllerFindAllFaultsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllFaults>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllFaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllFaults<TData = Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError = unknown>(
+ params?: StockControllerFindAllFaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindAllFaults>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindAllFaults>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindAllFaults<TData = Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError = unknown>(
+ params?: StockControllerFindAllFaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Arıza Kayıtlarını Listele (Filtreleme & Sayfalama)
+ */
+
+export function useStockControllerFindAllFaults<TData = Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError = unknown>(
+ params?: StockControllerFindAllFaultsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindAllFaults>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindAllFaultsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Arıza Kaydı Detayı
+ */
+export const stockControllerFindOneFault = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<FaultRecordResponseDto>(
+      {url: `/api/v1/stock/faults/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerFindOneFaultQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/stock/faults/${id}`
+    ] as const;
+    }
+
+    
+export const getStockControllerFindOneFaultQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerFindOneFaultQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerFindOneFault>>> = ({ signal }) => stockControllerFindOneFault(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerFindOneFaultQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerFindOneFault>>>
+export type StockControllerFindOneFaultQueryError = unknown
+
+
+export function useStockControllerFindOneFault<TData = Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneFault>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneFault>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneFault<TData = Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerFindOneFault>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerFindOneFault>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerFindOneFault<TData = Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Arıza Kaydı Detayı
+ */
+
+export function useStockControllerFindOneFault<TData = Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerFindOneFault>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerFindOneFaultQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Arıza Statüsü ve Teknisyen Notu Güncelle
+ */
+export const stockControllerUpdateFaultStatus = (
+    id: string,
+    updateFaultStatusDto: UpdateFaultStatusDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<FaultRecordResponseDto>(
+      {url: `/api/v1/stock/faults/${id}/status`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateFaultStatusDto
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerUpdateFaultStatusMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>, TError,{id: string;data: UpdateFaultStatusDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>, TError,{id: string;data: UpdateFaultStatusDto}, TContext> => {
+
+const mutationKey = ['stockControllerUpdateFaultStatus'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>, {id: string;data: UpdateFaultStatusDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerUpdateFaultStatus(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerUpdateFaultStatusMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>>
+    export type StockControllerUpdateFaultStatusMutationBody = UpdateFaultStatusDto
+    export type StockControllerUpdateFaultStatusMutationError = unknown
+
+    /**
+ * @summary Arıza Statüsü ve Teknisyen Notu Güncelle
+ */
+export const useStockControllerUpdateFaultStatus = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>, TError,{id: string;data: UpdateFaultStatusDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerUpdateFaultStatus>>,
+        TError,
+        {id: string;data: UpdateFaultStatusDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerUpdateFaultStatusMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Servis Kabul / Arıza Fişi PDF İndir
+ */
+export const stockControllerGetFaultPdf = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/stock/faults/${id}/pdf`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetFaultPdfQueryKey = (id?: string,) => {
+    return [
+    `/api/v1/stock/faults/${id}/pdf`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetFaultPdfQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError = unknown>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetFaultPdfQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>> = ({ signal }) => stockControllerGetFaultPdf(id, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetFaultPdfQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>>
+export type StockControllerGetFaultPdfQueryError = unknown
+
+
+export function useStockControllerGetFaultPdf<TData = Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError = unknown>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetFaultPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetFaultPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetFaultPdf<TData = Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetFaultPdf>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetFaultPdf>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetFaultPdf<TData = Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Servis Kabul / Arıza Fişi PDF İndir
+ */
+
+export function useStockControllerGetFaultPdf<TData = Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError = unknown>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultPdf>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetFaultPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Depo Bazlı Stok Durumu Raporu
+ */
+export const stockControllerGetWarehouseStockReport = (
+    params?: StockControllerGetWarehouseStockReportParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarehouseStockReportItemDto[]>(
+      {url: `/api/v1/stock/reports/warehouse-stock`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetWarehouseStockReportQueryKey = (params?: StockControllerGetWarehouseStockReportParams,) => {
+    return [
+    `/api/v1/stock/reports/warehouse-stock`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerGetWarehouseStockReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError = unknown>(params?: StockControllerGetWarehouseStockReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetWarehouseStockReportQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>> = ({ signal }) => stockControllerGetWarehouseStockReport(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetWarehouseStockReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>>
+export type StockControllerGetWarehouseStockReportQueryError = unknown
+
+
+export function useStockControllerGetWarehouseStockReport<TData = Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError = unknown>(
+ params: undefined |  StockControllerGetWarehouseStockReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetWarehouseStockReport<TData = Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError = unknown>(
+ params?: StockControllerGetWarehouseStockReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetWarehouseStockReport<TData = Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError = unknown>(
+ params?: StockControllerGetWarehouseStockReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Depo Bazlı Stok Durumu Raporu
+ */
+
+export function useStockControllerGetWarehouseStockReport<TData = Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError = unknown>(
+ params?: StockControllerGetWarehouseStockReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarehouseStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetWarehouseStockReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Kritik Stok Seviyesi Raporu
+ */
+export const stockControllerGetCriticalStockReport = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarehouseStockReportItemDto[]>(
+      {url: `/api/v1/stock/reports/critical-stock`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetCriticalStockReportQueryKey = () => {
+    return [
+    `/api/v1/stock/reports/critical-stock`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetCriticalStockReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetCriticalStockReportQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>> = ({ signal }) => stockControllerGetCriticalStockReport(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetCriticalStockReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>>
+export type StockControllerGetCriticalStockReportQueryError = unknown
+
+
+export function useStockControllerGetCriticalStockReport<TData = Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetCriticalStockReport<TData = Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetCriticalStockReport<TData = Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Kritik Stok Seviyesi Raporu
+ */
+
+export function useStockControllerGetCriticalStockReport<TData = Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCriticalStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetCriticalStockReportQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Seri Numarası Yaşam Döngüsü & Zaman Tüneli
+ */
+export const stockControllerGetSerialTimeline = (
+    params: StockControllerGetSerialTimelineParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SerialTimelineResponseDto>(
+      {url: `/api/v1/stock/reports/serial-timeline`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetSerialTimelineQueryKey = (params?: StockControllerGetSerialTimelineParams,) => {
+    return [
+    `/api/v1/stock/reports/serial-timeline`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerGetSerialTimelineQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError = unknown>(params: StockControllerGetSerialTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetSerialTimelineQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>> = ({ signal }) => stockControllerGetSerialTimeline(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetSerialTimelineQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>>
+export type StockControllerGetSerialTimelineQueryError = unknown
+
+
+export function useStockControllerGetSerialTimeline<TData = Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError = unknown>(
+ params: StockControllerGetSerialTimelineParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetSerialTimeline<TData = Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError = unknown>(
+ params: StockControllerGetSerialTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetSerialTimeline<TData = Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError = unknown>(
+ params: StockControllerGetSerialTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Seri Numarası Yaşam Döngüsü & Zaman Tüneli
+ */
+
+export function useStockControllerGetSerialTimeline<TData = Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError = unknown>(
+ params: StockControllerGetSerialTimelineParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSerialTimeline>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetSerialTimelineQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Garanti Takip Raporu (Müşteri & Tedarikçi)
+ */
+export const stockControllerGetWarrantyReport = (
+    params?: StockControllerGetWarrantyReportParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<WarrantyReportItemDto[]>(
+      {url: `/api/v1/stock/reports/warranty`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetWarrantyReportQueryKey = (params?: StockControllerGetWarrantyReportParams,) => {
+    return [
+    `/api/v1/stock/reports/warranty`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerGetWarrantyReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError = unknown>(params?: StockControllerGetWarrantyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetWarrantyReportQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>> = ({ signal }) => stockControllerGetWarrantyReport(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetWarrantyReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>>
+export type StockControllerGetWarrantyReportQueryError = unknown
+
+
+export function useStockControllerGetWarrantyReport<TData = Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError = unknown>(
+ params: undefined |  StockControllerGetWarrantyReportParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetWarrantyReport<TData = Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError = unknown>(
+ params?: StockControllerGetWarrantyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetWarrantyReport<TData = Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError = unknown>(
+ params?: StockControllerGetWarrantyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Garanti Takip Raporu (Müşteri & Tedarikçi)
+ */
+
+export function useStockControllerGetWarrantyReport<TData = Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError = unknown>(
+ params?: StockControllerGetWarrantyReportParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetWarrantyReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetWarrantyReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Stok Hareket Defteri (Giriş / Çıkış Tarihçesi)
+ */
+export const stockControllerGetStockMovements = (
+    params?: StockControllerGetStockMovementsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<StockMovementReportItemDto[]>(
+      {url: `/api/v1/stock/reports/movements`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetStockMovementsQueryKey = (params?: StockControllerGetStockMovementsParams,) => {
+    return [
+    `/api/v1/stock/reports/movements`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getStockControllerGetStockMovementsQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError = unknown>(params?: StockControllerGetStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetStockMovementsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetStockMovements>>> = ({ signal }) => stockControllerGetStockMovements(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetStockMovementsQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetStockMovements>>>
+export type StockControllerGetStockMovementsQueryError = unknown
+
+
+export function useStockControllerGetStockMovements<TData = Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError = unknown>(
+ params: undefined |  StockControllerGetStockMovementsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetStockMovements>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetStockMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetStockMovements<TData = Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError = unknown>(
+ params?: StockControllerGetStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetStockMovements>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetStockMovements>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetStockMovements<TData = Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError = unknown>(
+ params?: StockControllerGetStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stok Hareket Defteri (Giriş / Çıkış Tarihçesi)
+ */
+
+export function useStockControllerGetStockMovements<TData = Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError = unknown>(
+ params?: StockControllerGetStockMovementsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetStockMovements>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetStockMovementsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Tedarikçi Bazlı Mal Kabul Raporu
+ */
+export const stockControllerGetSupplierEntriesReport = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SupplierEntriesReportItemDto[]>(
+      {url: `/api/v1/stock/reports/supplier-entries`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetSupplierEntriesReportQueryKey = () => {
+    return [
+    `/api/v1/stock/reports/supplier-entries`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetSupplierEntriesReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetSupplierEntriesReportQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>> = ({ signal }) => stockControllerGetSupplierEntriesReport(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetSupplierEntriesReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>>
+export type StockControllerGetSupplierEntriesReportQueryError = unknown
+
+
+export function useStockControllerGetSupplierEntriesReport<TData = Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetSupplierEntriesReport<TData = Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetSupplierEntriesReport<TData = Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tedarikçi Bazlı Mal Kabul Raporu
+ */
+
+export function useStockControllerGetSupplierEntriesReport<TData = Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetSupplierEntriesReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetSupplierEntriesReportQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Müşteri Bazlı Sevkiyat Raporu
+ */
+export const stockControllerGetCustomerExitsReport = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<CustomerExitsReportItemDto[]>(
+      {url: `/api/v1/stock/reports/customer-exits`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetCustomerExitsReportQueryKey = () => {
+    return [
+    `/api/v1/stock/reports/customer-exits`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetCustomerExitsReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetCustomerExitsReportQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>> = ({ signal }) => stockControllerGetCustomerExitsReport(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetCustomerExitsReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>>
+export type StockControllerGetCustomerExitsReportQueryError = unknown
+
+
+export function useStockControllerGetCustomerExitsReport<TData = Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetCustomerExitsReport<TData = Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetCustomerExitsReport<TData = Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Müşteri Bazlı Sevkiyat Raporu
+ */
+
+export function useStockControllerGetCustomerExitsReport<TData = Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetCustomerExitsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetCustomerExitsReportQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Arıza & RMA İstatistikleri Raporu
+ */
+export const stockControllerGetFaultStatisticsReport = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<FaultStatisticsReportDto>(
+      {url: `/api/v1/stock/reports/fault-statistics`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetFaultStatisticsReportQueryKey = () => {
+    return [
+    `/api/v1/stock/reports/fault-statistics`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetFaultStatisticsReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetFaultStatisticsReportQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>> = ({ signal }) => stockControllerGetFaultStatisticsReport(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetFaultStatisticsReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>>
+export type StockControllerGetFaultStatisticsReportQueryError = unknown
+
+
+export function useStockControllerGetFaultStatisticsReport<TData = Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetFaultStatisticsReport<TData = Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetFaultStatisticsReport<TData = Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Arıza & RMA İstatistikleri Raporu
+ */
+
+export function useStockControllerGetFaultStatisticsReport<TData = Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetFaultStatisticsReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetFaultStatisticsReportQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Stok Raporlarını Excel Olarak İndir (.xlsx)
+ */
+export const stockControllerExportStockReport = (
+    reportType: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/stock/reports/export/${reportType}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerExportStockReportQueryKey = (reportType?: string,) => {
+    return [
+    `/api/v1/stock/reports/export/${reportType}`
+    ] as const;
+    }
+
+    
+export const getStockControllerExportStockReportQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError = unknown>(reportType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerExportStockReportQueryKey(reportType);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerExportStockReport>>> = ({ signal }) => stockControllerExportStockReport(reportType, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(reportType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerExportStockReportQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerExportStockReport>>>
+export type StockControllerExportStockReportQueryError = unknown
+
+
+export function useStockControllerExportStockReport<TData = Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError = unknown>(
+ reportType: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerExportStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerExportStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerExportStockReport<TData = Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError = unknown>(
+ reportType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerExportStockReport>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerExportStockReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerExportStockReport<TData = Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError = unknown>(
+ reportType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Stok Raporlarını Excel Olarak İndir (.xlsx)
+ */
+
+export function useStockControllerExportStockReport<TData = Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError = unknown>(
+ reportType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerExportStockReport>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerExportStockReportQueryOptions(reportType,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Sıralı Onay Akışı Adımlarını Listele
+ */
+export const stockControllerGetApprovalSettings = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ApprovalSettingResponseDto[]>(
+      {url: `/api/v1/stock/approval-settings`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getStockControllerGetApprovalSettingsQueryKey = () => {
+    return [
+    `/api/v1/stock/approval-settings`
+    ] as const;
+    }
+
+    
+export const getStockControllerGetApprovalSettingsQueryOptions = <TData = Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getStockControllerGetApprovalSettingsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>> = ({ signal }) => stockControllerGetApprovalSettings(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type StockControllerGetApprovalSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>>
+export type StockControllerGetApprovalSettingsQueryError = unknown
+
+
+export function useStockControllerGetApprovalSettings<TData = Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetApprovalSettings<TData = Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>,
+          TError,
+          Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useStockControllerGetApprovalSettings<TData = Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Sıralı Onay Akışı Adımlarını Listele
+ */
+
+export function useStockControllerGetApprovalSettings<TData = Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof stockControllerGetApprovalSettings>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getStockControllerGetApprovalSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Yeni Onay Adımı Ekle
+ */
+export const stockControllerCreateApprovalSetting = (
+    createApprovalSettingDto: CreateApprovalSettingDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ApprovalSettingResponseDto>(
+      {url: `/api/v1/stock/approval-settings`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createApprovalSettingDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerCreateApprovalSettingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>, TError,{data: CreateApprovalSettingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>, TError,{data: CreateApprovalSettingDto}, TContext> => {
+
+const mutationKey = ['stockControllerCreateApprovalSetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>, {data: CreateApprovalSettingDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  stockControllerCreateApprovalSetting(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerCreateApprovalSettingMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>>
+    export type StockControllerCreateApprovalSettingMutationBody = CreateApprovalSettingDto
+    export type StockControllerCreateApprovalSettingMutationError = unknown
+
+    /**
+ * @summary Yeni Onay Adımı Ekle
+ */
+export const useStockControllerCreateApprovalSetting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>, TError,{data: CreateApprovalSettingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerCreateApprovalSetting>>,
+        TError,
+        {data: CreateApprovalSettingDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerCreateApprovalSettingMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Onay Adımını Güncelle
+ */
+export const stockControllerUpdateApprovalSetting = (
+    id: string,
+    updateApprovalSettingDto: UpdateApprovalSettingDto,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<ApprovalSettingResponseDto>(
+      {url: `/api/v1/stock/approval-settings/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: updateApprovalSettingDto
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerUpdateApprovalSettingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>, TError,{id: string;data: UpdateApprovalSettingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>, TError,{id: string;data: UpdateApprovalSettingDto}, TContext> => {
+
+const mutationKey = ['stockControllerUpdateApprovalSetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>, {id: string;data: UpdateApprovalSettingDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  stockControllerUpdateApprovalSetting(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerUpdateApprovalSettingMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>>
+    export type StockControllerUpdateApprovalSettingMutationBody = UpdateApprovalSettingDto
+    export type StockControllerUpdateApprovalSettingMutationError = unknown
+
+    /**
+ * @summary Onay Adımını Güncelle
+ */
+export const useStockControllerUpdateApprovalSetting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>, TError,{id: string;data: UpdateApprovalSettingDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerUpdateApprovalSetting>>,
+        TError,
+        {id: string;data: UpdateApprovalSettingDto},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerUpdateApprovalSettingMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Onay Adımını Sil
+ */
+export const stockControllerRemoveApprovalSetting = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<void>(
+      {url: `/api/v1/stock/approval-settings/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
+
+
+export const getStockControllerRemoveApprovalSettingMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['stockControllerRemoveApprovalSetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  stockControllerRemoveApprovalSetting(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StockControllerRemoveApprovalSettingMutationResult = NonNullable<Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>>
+    
+    export type StockControllerRemoveApprovalSettingMutationError = unknown
+
+    /**
+ * @summary Onay Adımını Sil
+ */
+export const useStockControllerRemoveApprovalSetting = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof stockControllerRemoveApprovalSetting>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getStockControllerRemoveApprovalSettingMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

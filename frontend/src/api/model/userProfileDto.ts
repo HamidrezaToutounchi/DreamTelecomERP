@@ -7,6 +7,9 @@
  */
 import type { UserProfileDtoPhone } from './userProfileDtoPhone';
 import type { UserProfileDtoRole } from './userProfileDtoRole';
+import type { UserProfileDtoAppRoleId } from './userProfileDtoAppRoleId';
+import type { UserProfileDtoAppRoleName } from './userProfileDtoAppRoleName';
+import type { UserProfileDtoPermissions } from './userProfileDtoPermissions';
 
 export interface UserProfileDto {
   id: string;
@@ -15,5 +18,10 @@ export interface UserProfileDto {
   phone?: UserProfileDtoPhone;
   role: UserProfileDtoRole;
   isActive: boolean;
+  isSuperAdmin?: boolean;
+  appRoleId?: UserProfileDtoAppRoleId;
+  appRoleName?: UserProfileDtoAppRoleName;
+  /** Kullanıcının modül bazlı yetkileri haritası */
+  permissions?: UserProfileDtoPermissions;
   createdAt: string;
 }

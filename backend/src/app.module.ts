@@ -18,6 +18,12 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { CompaniesModule } from './companies/companies.module';
+import { PermissionsModule } from './common/services/permissions.module';
+import { RolesModule } from './roles/roles.module';
+import { BarcodeModule } from './common/barcode/barcode.module';
+import { WarehousesModule } from './warehouses/warehouses.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
+import { StockModule } from './stock/stock.module';
 
 @Module({
   imports: [
@@ -30,10 +36,13 @@ import { CompaniesModule } from './companies/companies.module';
       serveRoot: '/uploads',
     }),
     PrismaModule,
+    PermissionsModule,
+    BarcodeModule,
     AuditLogsModule,
     EventsModule,
     AuthModule,
     UsersModule,
+    RolesModule,
     LeadsModule,
     CustomersModule,
     InteractionsModule,
@@ -44,6 +53,9 @@ import { CompaniesModule } from './companies/companies.module';
     CategoriesModule,
     ProductsModule,
     CompaniesModule,
+    WarehousesModule,
+    SuppliersModule,
+    StockModule,
   ],
 })
 export class AppModule {}

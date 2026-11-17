@@ -19,4 +19,11 @@ export interface UpdateProductDto {
   currency?: UpdateProductDtoCurrency;
   taxRate?: number;
   imageUrl?: string;
+  trackSerial?: boolean;
+  trackMac?: boolean;
+  macRequired?: boolean;
+  customerWarrantyMonths?: number;
+  supplierWarrantyMonths?: number;
+  minStockLevel?: string;
+  unit?: string;
 }

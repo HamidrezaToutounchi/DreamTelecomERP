@@ -19,9 +19,42 @@ export class CustomersService {
     private auditLogsService: AuditLogsService,
   ) {}
 
-  private checkRepAccess(customer: { createdById?: string; assignedToId: string }, user: AuthenticatedUser) {
-    if (user.role === Role.SALES_REP) {
-      if (customer.assignedToId !== user.id) {
+  private async isSalesRepOnly(user: AuthenticatedUser): Promise<boolean> {
+    if (user.isSuperAdmin || user.role === Role.SALES_MANAGER) {
+      return false;
+    }
+    // Depo, Kargo, Sevkiyat, Teknik Servis, Muhasebe gibi operasyonel personeller tüm müşterileri görebilir
+    const appRole =
+      (user as any).appRole ||
+      (user.appRoleId
+        ? await this.prisma.appRole.findUnique({
+            where: { id: user.appRoleId },
+            select: { name: true },
+          })
+        : null);
+
+    const roleName = appRole?.name || '';
+    if (
+      roleName.includes('Depo') ||
+      roleName.includes('Kargo') ||
+      roleName.includes('Sevkiyat') ||
+      roleName.includes('Lojistik') ||
+      roleName.includes('Teknik') ||
+      roleName.includes('Servis') ||
+      roleName.includes('Muhasebe') ||
+      roleName.includes('Yönetici') ||
+      roleName.includes('Müdür')
+    ) {
+      return false;
+    }
+
+    return user.role === Role.SALES_REP;
+  }
+
+  private async checkRepAccess(customer: { createdById?: string; assignedToId: string }, user: AuthenticatedUser) {
+    const isRepOnly = await this.isSalesRepOnly(user);
+    if (isRepOnly) {
+      if (customer.assignedToId !== user.id && (customer as any).createdById !== user.id) {
         throw new ForbiddenException('Bu müşteri kaydına erişim yetkiniz bulunmamaktadır.');
       }
     }
@@ -185,7 +218,8 @@ export class CustomersService {
 
     const where: Prisma.CustomerWhereInput = {};
 
-    if (user.role === Role.SALES_REP) {
+    const isRepOnly = await this.isSalesRepOnly(user);
+    if (isRepOnly) {
       where.assignedToId = user.id;
     } else if (query.repId) {
       where.assignedToId = query.repId;
@@ -281,7 +315,7 @@ export class CustomersService {
       throw new NotFoundException('Müşteri bulunamadı.');
     }
 
-    this.checkRepAccess(customer, user);
+    await this.checkRepAccess(customer, user);
     return customer;
   }
 
@@ -291,9 +325,10 @@ export class CustomersService {
       throw new NotFoundException('Müşteri bulunamadı.');
     }
 
-    this.checkRepAccess(customer, user);
+    await this.checkRepAccess(customer, user);
 
-    if (user.role === Role.SALES_REP && dto.assignedToId && dto.assignedToId !== customer.assignedToId) {
+    const isRepOnly = await this.isSalesRepOnly(user);
+    if (isRepOnly && dto.assignedToId && dto.assignedToId !== customer.assignedToId) {
       throw new ForbiddenException('Satış temsilcileri müşteri atamasını değiştiremez.');
     }
 

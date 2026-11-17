@@ -13,5 +13,10 @@ export interface UpdateUserDto {
   phone?: string;
   password?: string;
   role?: UpdateUserDtoRole;
+  /**
+   * Atanacak sistem / özel rol ID
+   * @nullable
+   */
+  appRoleId?: string | null;
   isActive?: boolean;
 }
