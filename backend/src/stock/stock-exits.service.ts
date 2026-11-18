@@ -804,10 +804,31 @@ export class StockExitsService {
       this.prisma.stockExit.count({ where }),
     ]);
 
+    const [roles, settings] = await Promise.all([
+      this.prisma.appRole.findMany({ select: { id: true, name: true } }),
+      this.prisma.approvalSetting.findMany({ select: { step: true, name: true, roleId: true, userId: true } }),
+    ]);
+    const roleMap = new Map(roles.map((r: any) => [r.id, r.name]));
+    const settingMap = new Map(settings.map((s: any) => [s.step, s]));
+
+    const enrichedData = data.map((exit: any) => ({
+      ...exit,
+      approvals: (exit.approvals || []).map((ap: any) => {
+        const setting = settingMap.get(ap.step);
+        const roleName = ap.roleId ? roleMap.get(ap.roleId) : undefined;
+        return {
+          ...ap,
+          name: setting?.name || `Adım ${ap.step}`,
+          roleName,
+          role: ap.roleId ? { id: ap.roleId, name: roleName } : null,
+        };
+      }),
+    }));
+
     const totalPages = Math.ceil(totalRowCount / pageSize);
 
     return {
-      data,
+      data: enrichedData,
       meta: {
         page,
         pageSize,
@@ -864,6 +885,25 @@ export class StockExitsService {
       throw new NotFoundException('Stok çıkış fişi bulunamadı.');
     }
 
-    return exit;
+    const [roles, settings] = await Promise.all([
+      this.prisma.appRole.findMany({ select: { id: true, name: true } }),
+      this.prisma.approvalSetting.findMany({ select: { step: true, name: true, roleId: true, userId: true } }),
+    ]);
+    const roleMap = new Map(roles.map((r: any) => [r.id, r.name]));
+    const settingMap = new Map(settings.map((s: any) => [s.step, s]));
+
+    return {
+      ...exit,
+      approvals: (exit.approvals || []).map((ap: any) => {
+        const setting = settingMap.get(ap.step);
+        const roleName = ap.roleId ? roleMap.get(ap.roleId) : undefined;
+        return {
+          ...ap,
+          name: setting?.name || `Adım ${ap.step}`,
+          roleName,
+          role: ap.roleId ? { id: ap.roleId, name: roleName } : null,
+        };
+      }),
+    };
   }
 }

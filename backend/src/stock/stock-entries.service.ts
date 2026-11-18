@@ -123,21 +123,19 @@ export class StockEntriesService {
           allSerialsInPayload.add(normSerial);
 
           // MAC Kontrolü
-          if (prod.trackMac) {
-            if (prod.macRequired && !s.macAddress) {
-              throw new BadRequestException(`"${prod.name}" için MAC adresi zorunludur.`);
-            }
+          if (prod.trackMac && prod.macRequired && !s.macAddress) {
+            throw new BadRequestException(`"${prod.name}" için MAC adresi zorunludur.`);
+          }
 
-            if (s.macAddress) {
-              const normMac = this.barcodeService.normalizeMacAddress(s.macAddress);
-              if (!normMac) {
-                throw new BadRequestException(`Geçersiz MAC adresi formatı: "${s.macAddress}". (Örn: AA:BB:CC:DD:EE:FF)`);
-              }
-              if (allMacsInPayload.has(normMac)) {
-                throw new BadRequestException(`Aynı girişte mükerrer MAC adresi bulundu: ${normMac}`);
-              }
-              allMacsInPayload.add(normMac);
+          if (s.macAddress) {
+            const normMac = this.barcodeService.normalizeMacAddress(s.macAddress);
+            if (!normMac) {
+              throw new BadRequestException(`Geçersiz MAC adresi formatı: "${s.macAddress}". (Örn: AA:BB:CC:DD:EE:FF)`);
             }
+            if (allMacsInPayload.has(normMac)) {
+              throw new BadRequestException(`Aynı girişte mükerrer MAC adresi bulundu: ${normMac}`);
+            }
+            allMacsInPayload.add(normMac);
           }
         }
       }
@@ -161,18 +159,23 @@ export class StockEntriesService {
     }
 
     if (allMacsInPayload.size > 0) {
+      const macList = Array.from(allMacsInPayload);
       const existingMacs = await this.prisma.serialNumber.findMany({
         where: {
-          macAddress: { in: Array.from(allMacsInPayload) },
+          OR: macList.map((m) => ({
+            macAddress: { equals: m, mode: 'insensitive' },
+          })),
+        },
+        include: {
+          product: { select: { name: true } },
         },
       });
 
-      for (const ex of existingMacs) {
-        if (ex.status === SerialStatus.IN_STOCK) {
-          throw new BadRequestException(
-            `"${ex.macAddress}" MAC adresine sahip ürün şu anda zaten depoda stoktadır.`
-          );
-        }
+      if (existingMacs.length > 0) {
+        const ex = existingMacs[0];
+        throw new BadRequestException(
+          `"${ex.macAddress}" MAC adresi daha önce sistemde kaydedilmiştir (Seri No: ${ex.serial}, Ürün: ${ex.product?.name || 'Cihaz'}). Aynı MAC adresi tekrar girilemez!`
+        );
       }
     }
 

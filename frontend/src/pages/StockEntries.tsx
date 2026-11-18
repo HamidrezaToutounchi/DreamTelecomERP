@@ -43,6 +43,7 @@ import {
   useWarehousesControllerFindAll,
   useSuppliersControllerFindAll,
   useProductsControllerFindAll,
+  stockControllerLookup,
 } from '@/api/generated';
 import { BarcodeScanInput } from '@/components/stock/BarcodeScanInput';
 import { useAuth } from '@/context/AuthContext';
@@ -270,34 +271,70 @@ export const StockEntriesPage: React.FC = () => {
   };
 
   // Single Serial Scan Handler
-  const handleScanSerialForItem = (itemId: string, rawSerial: string) => {
+  const handleScanSerialForItem = async (itemId: string, rawSerial: string) => {
     const serial = rawSerial.trim().toUpperCase();
     if (!serial) return;
 
+    const targetItem = formItems.find((it) => it.id === itemId);
+    if (!targetItem) return;
+
+    // Duplicate check within item
+    if (targetItem.serials.some((s) => s.serial === serial)) {
+      toast.error(`"${serial}" seri numarası bu kaleme zaten eklendi.`);
+      return;
+    }
+
+    // Duplicate check across all items in form
+    const isDuplicateAcrossForm = formItems.some(
+      (other) => other.id !== itemId && other.serials.some((s) => s.serial === serial)
+    );
+    if (isDuplicateAcrossForm) {
+      toast.error(`"${serial}" seri numarası başka bir kalemde zaten mevcut.`);
+      return;
+    }
+
+    let formattedMac: string | undefined = undefined;
+    const rawMac = currentMacInput.trim().toUpperCase();
+    if (rawMac) {
+      const cleanMac = rawMac.replace(/[^0-9A-F]/g, '');
+      if (cleanMac.length !== 12) {
+        toast.error(`Geçersiz MAC adresi: "${rawMac}". 12 haneli onaltılık (hex) olmalıdır (Örn: AA:BB:CC:DD:EE:FF).`);
+        return;
+      }
+      formattedMac = cleanMac.match(/.{1,2}/g)?.join(':') || rawMac;
+
+      // Form içi mükerrer kontrolü
+      const isMacDuplicateInForm = formItems.some((other) =>
+        other.serials.some(
+          (s) => s.macAddress && s.macAddress.replace(/[^0-9A-F]/g, '') === cleanMac
+        )
+      );
+      if (isMacDuplicateInForm) {
+        toast.error(`"${formattedMac}" MAC adresi bu formda zaten başka bir seriye atanmış.`);
+        return;
+      }
+
+      // Veritabanında daha önce kaydedilmiş mi kontrolü
+      try {
+        const lookupRes = await stockControllerLookup({ code: formattedMac });
+        if (lookupRes && lookupRes.matchedBy === 'MAC') {
+          toast.error(
+            `"${formattedMac}" MAC adresi daha önce sistemde kayıtlıdır (Seri: ${lookupRes.serial?.serial || 'Mevcut'}). Aynı MAC adresi tekrar eklenemez!`
+          );
+          return;
+        }
+      } catch (e) {
+        // network error fallback
+      }
+    }
+
+    const newSerials = [...targetItem.serials, { serial, macAddress: formattedMac }];
+    setCurrentMacInput('');
+    setCurrentSerialInput('');
+    toast.success(`Seri eklendi: ${serial}`);
     setFormItems((prev) =>
       prev.map((item) => {
         if (item.id !== itemId) return item;
-
-        // Duplicate check within item
-        if (item.serials.some((s) => s.serial === serial)) {
-          toast.error(`"${serial}" seri numarası bu kaleme zaten eklendi.`);
-          return item;
-        }
-
-        // Duplicate check across all items in form
-        const isDuplicateAcrossForm = prev.some(
-          (other) => other.id !== itemId && other.serials.some((s) => s.serial === serial)
-        );
-        if (isDuplicateAcrossForm) {
-          toast.error(`"${serial}" seri numarası başka bir kalemde zaten mevcut.`);
-          return item;
-        }
-
-        const mac = currentMacInput.trim() ? currentMacInput.trim().toUpperCase() : undefined;
-        const newSerials = [...item.serials, { serial, macAddress: mac }];
-        setCurrentMacInput('');
-        setCurrentSerialInput('');
-        toast.success(`Seri eklendi: ${serial}`);
         return {
           ...item,
           quantity: Math.max(Number(item.quantity || 0), newSerials.length),
@@ -322,14 +359,32 @@ export const StockEntriesPage: React.FC = () => {
         if (item.id !== itemId) return item;
 
         const currentSerialsSet = new Set(item.serials.map((s) => s.serial));
+        const currentMacsSet = new Set(
+          prev
+            .flatMap((it) => it.serials.map((s) => s.macAddress?.replace(/[^0-9A-F]/g, '')))
+            .filter(Boolean)
+        );
         const newSerialsList = [...item.serials];
         let addedCount = 0;
+        let skippedMacCount = 0;
 
         for (const line of lines) {
           // Desteklenen format: "SERIAL" veya "SERIAL,MAC"
           const parts = line.split(/[,\t;]/).map((p) => p.trim());
           const serial = parts[0]?.toUpperCase();
-          const mac = parts[1]?.toUpperCase() || undefined;
+          let mac = parts[1]?.toUpperCase() || undefined;
+
+          if (mac) {
+            const cleanMac = mac.replace(/[^0-9A-F]/g, '');
+            if (cleanMac.length === 12) {
+              if (currentMacsSet.has(cleanMac)) {
+                skippedMacCount++;
+                continue;
+              }
+              currentMacsSet.add(cleanMac);
+              mac = cleanMac.match(/.{1,2}/g)?.join(':');
+            }
+          }
 
           if (serial && !currentSerialsSet.has(serial)) {
             currentSerialsSet.add(serial);
@@ -338,6 +393,9 @@ export const StockEntriesPage: React.FC = () => {
           }
         }
 
+        if (skippedMacCount > 0) {
+          toast.warning(`${skippedMacCount} adet mükerrer MAC adresi atlandı.`);
+        }
         toast.success(`${addedCount} adet seri numarası toplu eklendi.`);
         return {
           ...item,

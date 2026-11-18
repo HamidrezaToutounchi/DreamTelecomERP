@@ -1946,12 +1946,14 @@ export const StockExitsPage: React.FC = () => {
                       : 'border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                   )}
                 >
-                  <span className="font-bold">Adım {ap.step}:</span>
+                  <span className="font-bold">{ap.name || `Adım ${ap.step}`}:</span>
                   <span>
                     {ap.status === 'APPROVED' ? '✓ Onaylandı' : ap.status === 'REJECTED' ? '✕ Reddedildi' : '⏳ Bekliyor'}
                   </span>
-                  {ap.approver && (
-                    <span className="text-[10px] text-muted-foreground font-normal">({ap.approver.fullName})</span>
+                  {(ap.approver?.fullName || ap.roleName) && (
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      ({ap.approver?.fullName || ap.roleName})
+                    </span>
                   )}
                 </div>
               ))}
